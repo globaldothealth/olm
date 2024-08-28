@@ -9,7 +9,7 @@ __pycache__/
 
 # only html in outbreaks folder
 *.html
-!tests/outbreaks/*.html
+!src/obr/outbreaks/*.html
 
 # C extensions
 *.so
