@@ -1,0 +1,23 @@
+[project]
+name = "obr"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "chevron>=0.14.0",
+    "pandas>=2.2.2",
+    "python-dateutil>=2.9.0.post0",
+    "plotly>=5.23.0",
+    "boto3>=1.35.8",
+]
+scripts = { obr = "obr:main" }
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv]
+dev-dependencies = [
+    "pytest>=8.3.2",
+]

@@ -1,0 +1,17 @@
+"""
+Theme and color settings for obr
+"""
+
+REGEX_DATE = r"^202\d-[0,1]\d-[0-3]\d"
+OVERRIDES = {}
+FONT = "Inter"
+TITLE_FONT = "mabry-regular-pro"
+LEGEND_FONT_SIZE = 13
+
+GREEN_PRIMARY_COLOR = "#0E7569"
+BLUE_PRIMARY_COLOR = "#007AEC"
+PRIMARY_COLOR = GREEN_PRIMARY_COLOR
+SECONDARY_COLOR = "#00C6AF"
+BG_COLOR = "#ECF3F0"
+FG_COLOR = "#1E1E1E"
+GRID_COLOR = "#DEDEDE"
