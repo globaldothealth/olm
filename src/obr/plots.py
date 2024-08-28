@@ -164,7 +164,9 @@ def get_timeseries_location_status(
     return timeseries.reset_index(names="Date_onset_estimated")
 
 
-def plot_timeseries_location_status(df: pd.DataFrame, admin_column: str, columns: int = 3):
+def plot_timeseries_location_status(
+    df: pd.DataFrame, admin_column: str, columns: int = 3
+):
     df = get_timeseries_location_status(df, fill_index=True)
     locations = sorted(set(df[admin_column]) - {"Total"})
 
