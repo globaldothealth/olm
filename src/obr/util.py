@@ -47,9 +47,11 @@ def non_null_unique(arr: pd.Series) -> pd.Series:
     return uniq[~pd.isna(uniq)]
 
 
-def fix_datetimes(df: pd.DataFrame):
+def fix_datetimes(df: pd.DataFrame, additional_date_columns: list[str] = []):
     "Convert date fields to datetime in place"
-    date_columns = [c for c in df.columns if c.startswith("Date_") or "Date " in c]
+    date_columns = [
+        c for c in df.columns if c.startswith("Date_") or "Date " in c
+    ] + additional_date_columns
     for date_col in date_columns:
         df[date_col] = df[date_col].map(
             lambda x: (
@@ -141,10 +143,21 @@ def invalidate_cache(
         raise
 
 
-def read_csv(filename: str) -> pd.DataFrame:
-    "Helper function with post-processing steps after pd.read_csv"
+def read_csv(filename: str, date_columns: list[str] = []) -> pd.DataFrame:
+    """Helper function with post-processing steps after pd.read_csv
+
+    Parameters
+    ----------
+    filename
+        File or URL to read from. This is passed to pd.read_csv() so any URL
+        supported by pandas is supported here
+    date_columns
+        Additional date columns that should be converted. By default read_csv
+        fixes date columns to be of the correct type if they start with 'Date_'
+        or have 'Date ' in their column name
+    """
     df = pd.read_csv(filename, dtype=str, na_values=["N/K", "NK"])
-    fix_datetimes(df)
+    fix_datetimes(df, date_columns)
     return df
 
 
@@ -152,17 +165,37 @@ def build(
     outbreak_name: str,
     data_url: str,
     plots: list[PlotData],
+    date_columns: list[str] = [],
     output_bucket: str | None = None,
     cloudfront_distribution: str | None = None,
 ):
-    "Build epidemiological report"
+    """Build epidemiological report
+
+    Parameters
+    ----------
+    outbreak_name
+        Name of the outbreak
+    data_url
+        Data file for the outbreak, can be a S3 URL
+    plots
+        List of plot specifications for the outbreak, such as those
+        in :module:`obr.outbreaks`
+    date_columns
+        If specified, lists additional date columns to be passed to read_csv()
+    output_bucket
+        Output S3 bucket to write result to, in addition to local HTML output
+        to {outbreak_name}.html
+    cloudfront_distribution
+        If specified, invalidates the cache for the cloudfront distribution
+        without which changes are not made available
+    """
     assert " " not in outbreak_name, "Outbreak name should not have spaces"
     date = datetime.datetime.today().date()
     output_file = f"{outbreak_name}.html"
     if not (template := Path(__file__).parent / "outbreaks" / output_file).exists():
         raise FileNotFoundError(f"Template for outbreak not found at: {template}")
     var = {"published_date": str(date)}
-    df = read_csv(data_url)
+    df = read_csv(data_url, date_columns)
     for plot in plots:
         kwargs = {} if len(plot) == 2 else plot[2]
         if plot[0] == "data":
