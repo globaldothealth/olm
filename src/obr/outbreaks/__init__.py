@@ -12,7 +12,15 @@ from ..plots import (
 
 outbreak_marburg = [
     ("data", get_counts, dict(date_col="Data_up_to")),
-    ("figure/epicurve", plot_epicurve),
+    (
+        "figure/epicurve",
+        plot_epicurve,
+        dict(
+            title="Date of symptom onset",
+            date_col="Date_onset_estimated",
+            groupby_col="Case_status",
+        ),
+    ),
     (
         "figure/epicurve_location_status",
         plot_timeseries_location_status,

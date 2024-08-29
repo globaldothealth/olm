@@ -2,8 +2,6 @@
 Theme and color settings for obr
 """
 
-REGEX_DATE = r"^202\d-[0,1]\d-[0-3]\d"
-OVERRIDES = {}
 FONT = "Inter"
 TITLE_FONT = "mabry-regular-pro"
 LEGEND_FONT_SIZE = 13
@@ -15,3 +13,18 @@ SECONDARY_COLOR = "#00C6AF"
 BG_COLOR = "#ECF3F0"
 FG_COLOR = "#1E1E1E"
 GRID_COLOR = "#DEDEDE"
+
+PALETTE = [
+    PRIMARY_COLOR,
+    SECONDARY_COLOR,
+    "#FFD700",  # Gold
+    "#FFAA00",  # Amber
+    "#FFCC33",  # Saffron
+    "#F0E68C",  # Khaki
+    "#FFFF00",  # Yellow
+    "#00BFFF",  # Deep Sky Blue
+    "#1E90FF",  # Dodger Blue
+    "#6495ED",  # Cornflower Blue
+    "#87CEEB",  # Sky Blue
+    "#4682B4",  # Steel Blue
+]

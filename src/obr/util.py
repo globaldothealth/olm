@@ -2,21 +2,17 @@
 Briefing report generator for Marburg 2023 outbreak
 """
 
+import re
 import logging
 import datetime
 from pathlib import Path
 from typing import Any, Callable
-from functools import cache
 
 import boto3
 import chevron
 import pandas as pd
-import numpy as np
-from dateutil.parser import ParserError
 import plotly.graph_objects as go
 import plotly.io
-import plotly.express as px
-from plotly.subplots import make_subplots
 
 PlotFunction = Callable[..., dict[str, Any] | go.Figure]
 PlotData = tuple[str, PlotFunction, dict[str, Any]]
@@ -34,6 +30,25 @@ AGE_BINS = [
     (70, 79),
     (80, 120),
 ]
+REGEX_DATE = r"^202\d-[0,1]\d-[0-3]\d"
+
+
+def non_null_unique(arr: pd.Series) -> pd.Series:
+    uniq = arr.unique()
+    return uniq[~pd.isna(uniq)]
+
+
+def fix_datetimes(df: pd.DataFrame):
+    "Convert date fields to datetime in place"
+    date_columns = [c for c in df.columns if c.startswith("Date_") or "Date " in c]
+    for date_col in date_columns:
+        df[date_col] = df[date_col].map(
+            lambda x: (
+                pd.to_datetime(x)
+                if isinstance(x, str) and re.match(REGEX_DATE, x)
+                else None
+            )
+        )
 
 
 def get_age_bins(age: str) -> range:
@@ -114,6 +129,13 @@ def invalidate_cache(
         raise
 
 
+def read_csv(filename: str) -> pd.DataFrame:
+    "Helper function with post-processing steps after pd.read_csv"
+    df = pd.read_csv(filename, dtype=str, na_values=["N/K", "NK"])
+    fix_datetimes(df)
+    return df
+
+
 def build(
     outbreak_name: str,
     data_url: str,
@@ -128,7 +150,7 @@ def build(
     if not (template := Path(__file__).parent / "outbreaks" / output_file).exists():
         raise FileNotFoundError(f"Template for outbreak not found at: {template}")
     var = {"published_date": str(date)}
-    df = pd.read_csv(data_url, na_values=["NK", "N/K"])
+    df = read_csv(data_url)
     for plot in plots:
         kwargs = {} if len(plot) == 2 else plot[2]
         if plot[0] == "data":

@@ -2,7 +2,6 @@
 Library of plots used in most outbreaks
 """
 
-import re
 import logging
 
 import pandas as pd
@@ -12,11 +11,17 @@ import plotly.graph_objects as go
 import plotly.express as px
 from plotly.subplots import make_subplots
 
-from .util import percentage_occurrence, name_bin, AGE_BINS, get_age_bins
+from .util import (
+    percentage_occurrence,
+    name_bin,
+    AGE_BINS,
+    get_age_bins,
+    non_null_unique,
+)
 from .theme import (
-    REGEX_DATE,
     FONT,
     TITLE_FONT,
+    PALETTE,
     LEGEND_FONT_SIZE,
     BLUE_PRIMARY_COLOR,
     PRIMARY_COLOR,
@@ -25,6 +30,8 @@ from .theme import (
     FG_COLOR,
     GRID_COLOR,
 )
+
+REGEX_DATE = r"^202\d-[0,1]\d-[0-3]\d"
 
 pd.options.mode.chained_assignment = None
 
@@ -69,32 +76,39 @@ def get_delays(
     return both[target_col] - both[onset_col]
 
 
-def get_epicurve(df: pd.DataFrame, cumulative: bool = True) -> pd.DataFrame:
-    """Returns epidemic curve - number of cases by (estimated) date of symptom onset"""
-    df["Date_onset_estimated"] = df.Date_onset_estimated.map(
-        lambda x: (
-            pd.to_datetime(x)
-            if isinstance(x, str) and re.match(REGEX_DATE, x)
-            else None
-        )
-    )
+def get_epicurve(
+    df: pd.DataFrame,
+    date_col: str,
+    groupby_col: str,
+    values: list[str] | None = None,
+    cumulative: bool = True,
+) -> pd.DataFrame:
+    """Returns epidemic curve
 
+    Parameters
+    ----------
+    df
+        Data from which epicurve is obtained
+    date_col
+        Date column to use
+    groupby_col
+        Column to group by, e.g. Case_status
+    values
+        Values of the column to plot, e.g. ['confirmed', 'probable']
+    cumulative
+        Whether to return cumulative counts (default = true)
+    """
+    values = non_null_unique(df[groupby_col]) if values is None else values
     epicurve = (
-        df[
-            ~pd.isna(df.Date_onset_estimated)
-            & df.Case_status.isin(["confirmed", "probable"])
-        ]
-        .groupby(["Date_onset_estimated", "Case_status"])
+        df[~pd.isna(df[date_col]) & df[groupby_col].isin(values)]
+        .groupby([date_col, groupby_col])
         .size()
         .reset_index()
-        .pivot(index="Date_onset_estimated", columns="Case_status", values=0)
+        .pivot(index=date_col, columns=groupby_col, values=0)
         .fillna(0)
         .astype(int)
     )
-    if cumulative:
-        epicurve["confirmed"] = epicurve.confirmed.cumsum()
-        epicurve["probable"] = epicurve.probable.cumsum()
-    return epicurve.reset_index()
+    return epicurve.cumsum() if cumulative else epicurve
 
 
 def get_counts(df: pd.DataFrame, date_col: str) -> dict[str, int]:
@@ -229,31 +243,31 @@ def plot_timeseries_location_status(
     return fig
 
 
-def plot_epicurve(df: pd.DataFrame, non_confirmed_col: str, cumulative: bool = True):
-    data = get_epicurve(df, cumulative=cumulative)
+def plot_epicurve(
+    df: pd.DataFrame,
+    title: str,
+    date_col: str,
+    groupby_col: str,
+    values: list[str] | None = None,
+    cumulative: bool = True,
+    palette: list[str] = PALETTE,
+):
+    values = non_null_unique(df[groupby_col]) if values is None else values
+    data = get_epicurve(df, date_col, groupby_col, values, cumulative=cumulative)
     fig = go.Figure()
-
-    fig.add_trace(
-        go.Scatter(
-            x=data.Date_onset_estimated,
-            y=data.confirmed,
-            name="confirmed",
-            line_color=PRIMARY_COLOR,
-            line_width=3,
-        ),
-    )
-    fig.add_trace(
-        go.Scatter(
-            x=data.Date_onset_estimated,
-            y=data[non_confirmed_col],
-            name="probable",
-            line_color=SECONDARY_COLOR,
-            line_width=3,
+    for idx, value in enumerate(values):
+        fig.add_trace(
+            go.Scatter(
+                x=data.index,
+                y=data[value],
+                name=value,
+                line_color=palette[idx],
+                line_width=3,
+            ),
         )
-    )
 
     fig.update_xaxes(
-        title_text="Date of symptom onset",
+        title_text=title,
         title_font_family=TITLE_FONT,
         title_font_color=FG_COLOR,
         gridcolor=GRID_COLOR,

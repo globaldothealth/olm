@@ -33,7 +33,7 @@ EXPECTED_TIMESERIES_LOCATION_STATUS = """Date_onset_estimated,daily_confirmed,da
 
 @pytest.mark.parametrize(
     "column,expected_delay_series",
-    [("Date_death", [4, 8, 6]), ("Date_of_first_consult", [6, 2])],
+    [("Date_death", [4, 8, 6, 6]), ("Date_of_first_consult", [6, 4, 2])],
 )
 def test_get_delays(column, expected_delay_series):
     assert list(get_delays(DATA, column).dt.days) == expected_delay_series
@@ -53,10 +53,12 @@ def test_get_age_bin_data():
 
 
 def test_get_epicurve():
-    epicurve = get_epicurve(DATA)
+    epicurve = get_epicurve(
+        DATA, "Date_onset", "Case_status", ["confirmed", "probable"]
+    )
     assert (
-        epicurve.to_csv(index=False)
-        == """Date_onset_estimated,confirmed,probable
+        epicurve.to_csv()
+        == """Date_onset,confirmed,probable
 2023-01-05,1,0
 2023-01-13,1,1
 2023-02-06,1,2
@@ -79,7 +81,8 @@ def test_get_counts():
 
 
 def test_get_timeseries_location_status():
+    data = DATA.rename(columns={"Date_onset": "Date_onset_estimated"})
     assert (
-        get_timeseries_location_status(DATA).to_csv(index=False)
+        get_timeseries_location_status(data).to_csv(index=False)
         == EXPECTED_TIMESERIES_LOCATION_STATUS
     )
