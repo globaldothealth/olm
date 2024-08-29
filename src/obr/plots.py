@@ -4,19 +4,13 @@ Library of plots used in most outbreaks
 
 import re
 import logging
-from functools import cache
 
-import boto3
-import chevron
 import pandas as pd
 import numpy as np
 from dateutil.parser import ParserError
 import plotly.graph_objects as go
 import plotly.express as px
 from plotly.subplots import make_subplots
-
-
-pd.options.mode.chained_assignment = None
 
 from .util import percentage_occurrence, name_bin, AGE_BINS, get_age_bins
 from .theme import (
@@ -31,6 +25,8 @@ from .theme import (
     FG_COLOR,
     GRID_COLOR,
 )
+
+pd.options.mode.chained_assignment = None
 
 
 def get_age_bin_data(df: pd.DataFrame) -> pd.DataFrame:
@@ -101,13 +97,14 @@ def get_epicurve(df: pd.DataFrame, cumulative: bool = True) -> pd.DataFrame:
     return epicurve.reset_index()
 
 
-def get_counts(df: pd.DataFrame) -> dict[str, int]:
+def get_counts(df: pd.DataFrame, date_col: str) -> dict[str, int]:
     status = df.Case_status.value_counts()
     confirmed = df[df.Case_status == "confirmed"]
     return {
         "n_confirmed": int(status.confirmed),
         "n_probable": int(status.get("probable", 0)),
-        "date": str(df[~pd.isna(df.Data_up_to)].Data_up_to.max()),
+        "n_suspected": int(status.get("suspected", 0)),
+        "date": str(df[~pd.isna(df[date_col])][date_col].max()),
         "pc_valid_age_gender": percentage_occurrence(
             confirmed,
             (~confirmed.Age.isna()) & (~confirmed.Gender.isna()),
@@ -232,7 +229,7 @@ def plot_timeseries_location_status(
     return fig
 
 
-def plot_epicurve(df: pd.DataFrame, cumulative: bool = True):
+def plot_epicurve(df: pd.DataFrame, non_confirmed_col: str, cumulative: bool = True):
     data = get_epicurve(df, cumulative=cumulative)
     fig = go.Figure()
 
@@ -248,7 +245,7 @@ def plot_epicurve(df: pd.DataFrame, cumulative: bool = True):
     fig.add_trace(
         go.Scatter(
             x=data.Date_onset_estimated,
-            y=data.probable,
+            y=data[non_confirmed_col],
             name="probable",
             line_color=SECONDARY_COLOR,
             line_width=3,

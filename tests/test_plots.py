@@ -69,9 +69,10 @@ def test_get_epicurve():
 
 
 def test_get_counts():
-    assert get_counts(DATA) == {
+    assert get_counts(DATA, date_col="Data_up_to") == {
         "n_confirmed": 5,
         "n_probable": 2,
+        "n_suspected": 0,
         "date": "2023-04-04",
         "pc_valid_age_gender": 100,
     }

@@ -11,7 +11,7 @@ from ..plots import (
 )
 
 outbreak_marburg = [
-    ("data", get_counts),
+    ("data", get_counts, dict(date_col="Data_up_to")),
     ("figure/epicurve", plot_epicurve),
     (
         "figure/epicurve_location_status",
@@ -41,5 +41,9 @@ outbreak_marburg = [
     ),
 ]
 
-OUTBREAKS = {"marburg": outbreak_marburg}
+outbreak_mpox_2024 = [
+    ("data", get_counts, dict(date_col="Date_entry")),
+    ("figure/epicurve", plot_epicurve),
+]
+OUTBREAKS = {"marburg": outbreak_marburg, "mpox-2024": outbreak_mpox_2024}
 __all__ = ["OUTBREAKS"]
