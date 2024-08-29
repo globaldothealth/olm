@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Mpox 2024 Outbreak - {{ published_date }}</title>
+    <meta name="description" content="Mpox 2024 outbreak briefing report from Global.health">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/light.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://www.monkeypox.global.health/style.css">
+    <link rel="shortcut icon" type="image/x-icon"
+        href="https://global.health/wp-content/uploads/2020/10/gs-favicon-green.png">
+    <link rel="apple-touch-icon" href="https://global.health/wp-content/uploads/2020/10/gs-favicon-green.png">
+    <script src="https://cdn.plot.ly/plotly-2.12.1.min.js"></script>
+</head>
+
+<body>
+    <main>
+        <nav>
+            <img class="logo" src="https://global.health/wp-content/uploads/2020/07/gh-logo-full-black.png"
+                alt="Global.health logo"></li>
+            <ul>
+                <li><a href="https://mpox-2024.s3.eu-central-1.amazonaws.com/latest.csv">Data</a></li>
+                <li><a href="https://github.com/globaldothealth/outbreak-data/wiki/GHL2024.D11.1E71">GitHub</a></li>
+            </ul>
+        </nav>
+        <h1>Mpox 2024 Outbreak</h1>
+        <p class="byline">From the <a href="https://global.health">Global.health</a> team (<a
+                href="mailto:info@global.health">info@global.health</a>). Published on {{ published_date}}
+        </p>
+
+        <h2>Summary</h2>
+
+        {{#info}}
+        <div class="info">
+            <p>{{ info }}</p>
+        </div>
+        {{/info}}
+
+        <p class="summary">
+            <strong>{{ n_confirmed }}</strong> confirmed and <strong>{{ n_suspected }}</strong>
+            suspected cases as of {{ date }}
+        </p>
+
+        <figure>
+
+            {{{ epicurve_source_report }}}
+
+            <figcaption>
+                <strong>Figure 1</strong>: Number of cumulative confirmed and suspected cases
+                by date of report in the primary source.
+            </figcaption>
+        </figure>
+
+        <figure>
+
+            {{{ epicurve_confirmed }}}
+
+            <figcaption>
+                <strong>Figure 2</strong>: Number of cumulative confirmed cases
+                by date of confirmation.
+            </figcaption>
+        </figure>
+
+        <figure>
+
+            {{{ age_gender }}}
+            <figcaption>
+                <strong>Figure 3</strong>: Age and gender distribution of
+                Mpox cases in the current outbreak.
+                {{ pc_valid_age_gender }}% of confirmed cases include
+                sufficient metadata to be included in this figure. When reported
+                age ranges span multiple age categories, counts are evenly
+                distributed among the categories that capture the reported age
+                range.
+            </figcaption>
+        </figure>
+
+        <p><strong>Data accessibility and reproducibility</strong>: All data
+            used in this report are available from our data repository Should you identify any issues or have questions please
+            raise an issue on <a href="https://github.com/globaldothealth/outbreak-data">GitHub</a> or write to
+            us: <a href="mailto:info@global.health">info@global.health</a>.</p>
+
+    </main>
+</body>
+
+</html>
