@@ -118,7 +118,7 @@ def get_counts(df: pd.DataFrame, date_col: str) -> dict[str, int]:
         "n_confirmed": int(status.confirmed),
         "n_probable": int(status.get("probable", 0)),
         "n_suspected": int(status.get("suspected", 0)),
-        "date": str(df[~pd.isna(df[date_col])][date_col].max()),
+        "date": str(df[~pd.isna(df[date_col])][date_col].max().date()),
         "pc_valid_age_gender": percentage_occurrence(
             confirmed,
             (~confirmed.Age.isna()) & (~confirmed.Gender.isna()),
@@ -236,9 +236,11 @@ def plot_timeseries_location_status(
         legend_font_size=LEGEND_FONT_SIZE,
     )
     for annotation in fig["layout"]["annotations"]:
-        annotation["font"] = dict(
-            family=TITLE_FONT, size=LEGEND_FONT_SIZE + 3, color=FG_COLOR
-        )
+        annotation["font"] = {
+            "family": TITLE_FONT,
+            "size": LEGEND_FONT_SIZE + 3,
+            "color": FG_COLOR,
+        }
 
     return fig
 
@@ -364,17 +366,17 @@ def plot_age_gender(df: pd.DataFrame):
         zeroline=False,
     )
     fig.update_layout(
-        dict(
-            barmode="overlay",
-            bargap=0.1,
-            template="plotly_white",
-            font_family=FONT,
-            hoverlabel_font_family=FONT,
-            plot_bgcolor=BG_COLOR,
-            paper_bgcolor=BG_COLOR,
-            legend_font_family=TITLE_FONT,
-            legend_font_size=LEGEND_FONT_SIZE,
-        )
+        {
+            "barmode": "overlay",
+            "bargap": 0.1,
+            "template": "plotly_white",
+            "font_family": FONT,
+            "hoverlabel_font_family": FONT,
+            "plot_bgcolor": BG_COLOR,
+            "paper_bgcolor": BG_COLOR,
+            "legend_font_family": TITLE_FONT,
+            "legend_font_size": LEGEND_FONT_SIZE,
+        }
     )
 
     fig.add_trace(
@@ -386,7 +388,7 @@ def plot_age_gender(df: pd.DataFrame):
             hoverinfo="skip",
             hovertemplate=None,
             textposition="none",
-            marker=dict(color=SECONDARY_COLOR),
+            marker={"color": SECONDARY_COLOR},
         )
     )
     fig.add_trace(
@@ -399,7 +401,7 @@ def plot_age_gender(df: pd.DataFrame):
             hoverinfo="skip",
             hovertemplate=None,
             textposition="none",
-            marker=dict(color=BLUE_PRIMARY_COLOR),
+            marker={"color": BLUE_PRIMARY_COLOR},
         )
     )
 

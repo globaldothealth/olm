@@ -10,8 +10,9 @@ from obr.plots import (
     get_age_bin_data,
     get_timeseries_location_status,
 )
+from obr.util import read_csv
 
-DATA = pd.read_csv(Path(__file__).with_name("test_data.csv"))
+DATA = read_csv(Path(__file__).with_name("test_data.csv"), date_columns=["Data_up_to"])
 
 EXPECTED_TIMESERIES_LOCATION_STATUS = """Date_onset_estimated,daily_confirmed,daily_probable,cumulative_confirmed,cumulative_probable,Location_District
 2023-02-06,0,1,0,1,Bata
