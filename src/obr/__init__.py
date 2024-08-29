@@ -1,5 +1,7 @@
 import sys
 import argparse
+import webbrowser
+from pathlib import Path
 from .util import build
 from .outbreaks import OUTBREAKS
 
@@ -19,6 +21,9 @@ def main():
     parser.add_argument(
         "--cloudfront", help="Cloudfront distribution which should be invalidated"
     )
+    parser.add_argument(
+        "-o", "--open", action="store_true", help="Open local file in web browser"
+    )
 
     args = parser.parse_args()
     if args.outbreak not in OUTBREAKS:
@@ -27,10 +32,13 @@ def main():
     build(
         args.outbreak,
         args.url,
-        OUTBREAKS[args.outbreak],
+        OUTBREAKS[args.outbreak]["plots"],
+        date_columns=OUTBREAKS[args.outbreak].get("additional_date_columns", []),
         output_bucket=args.bucket,
         cloudfront_distribution=args.cloudfront,
     )
+    if args.open and (Path(args.outbreak + ".html")).exists():
+        webbrowser.open("file://" + str(Path.cwd() / (args.outbreak + ".html")))
 
 
 if __name__ == "__main__":
