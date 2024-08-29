@@ -37,7 +37,7 @@ def main():
         case "list":
             for outbreak in OUTBREAKS:
                 print(
-                    f"\033[1m{outbreak:12s} \033[0m{OUTBREAKS[outbreak]["description"]}"
+                    f"\033[1m{outbreak:12s} \033[0m{OUTBREAKS[outbreak]['description']}"
                 )
         case "report":
             if args.outbreak not in OUTBREAKS:
