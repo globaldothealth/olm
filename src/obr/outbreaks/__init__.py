@@ -4,6 +4,8 @@ Outbreak configurations
 
 from ..plots import (
     get_counts,
+    get_countries_with_status,
+    get_countries_with_anyof_statuses,
     plot_epicurve,
     plot_timeseries_location_status,
     plot_age_gender,
@@ -50,7 +52,17 @@ outbreak_marburg = [
 ]
 
 outbreak_mpox_2024 = [
-    ("data", get_counts, dict(date_col="Date_entry")),
+    ("data", get_counts, {"date_col": "Date_entry"}),
+    (
+        "data",
+        get_countries_with_status,
+        {"country_col": "Location_Admin0", "statuses": ["confirmed", "suspected"]},
+    ),
+    (
+        "data",
+        get_countries_with_anyof_statuses,
+        {"country_col": "Location_Admin0", "statuses": ["confirmed", "suspected"]},
+    ),
     (
         "figure/epicurve_source_report",
         plot_epicurve,
@@ -58,6 +70,7 @@ outbreak_mpox_2024 = [
             "title": "Date of report in primary source",
             "date_col": "Source_I_Date report",
             "groupby_col": "Case_status",
+            "values": ["confirmed", "suspected"],
         },
     ),
     (
