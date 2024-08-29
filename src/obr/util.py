@@ -32,6 +32,15 @@ AGE_BINS = [
 ]
 REGEX_DATE = r"^202\d-[0,1]\d-[0-3]\d"
 
+# Upper bounded ages below this are upper bounded to 60 Example: an age
+# of '>15' would be mapped to 15-60 while an age of '>70' would be
+# mapped to 70-120
+SENIOR_AGE = 60
+
+# Very few humans reach this age, ages above are probably data entry
+# errors
+UPPER_LIMIT_AGE = 120
+
 
 def non_null_unique(arr: pd.Series) -> pd.Series:
     uniq = arr.unique()
@@ -58,6 +67,9 @@ def get_age_bins(age: str) -> range:
         return range(0, 1)
     if "-" in age:
         start_age, end_age = list(map(int, age.split("-")))
+    elif ">" in age:
+        start_age = int(age.replace(">", ""))
+        end_age = UPPER_LIMIT_AGE if start_age >= SENIOR_AGE else SENIOR_AGE
     else:
         start_age = end_age = int(age)
     for i in range(len(AGE_BINS)):
