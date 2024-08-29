@@ -36,6 +36,41 @@ REGEX_DATE = r"^202\d-[0,1]\d-[0-3]\d"
 pd.options.mode.chained_assignment = None
 
 
+def get_countries_with_status(
+    df: pd.DataFrame,
+    country_col: str,
+    statuses: list[str],
+    status_col: str = "Case_status",
+) -> dict[str, int]:
+    """For a set of statuses, gets number of countries which have the status,
+    and the number of countries who have that status exclusively"""
+
+    out = {}
+    for status in statuses:
+        out[f"n_countries_{status}"] = len(
+            df[df[status_col] == status][country_col].unique()
+        )
+        out[f"n_countries_{status}_only"] = len(
+            set(df[df[status_col] == status][country_col])
+            - set(df[df[status_col] != status][country_col])
+        )
+    return out
+
+
+def get_countries_with_anyof_statuses(
+    df: pd.DataFrame,
+    country_col: str,
+    statuses: list[str],
+    status_col: str = "Case_status",
+) -> dict[str, int]:
+    "Gets number of countries which have any of the statuses listed"
+    return {
+        "n_countries_" + "_or_".join(sorted(statuses)): len(
+            df[df[status_col].isin(statuses)][country_col].unique()
+        )
+    }
+
+
 def get_age_bin_data(df: pd.DataFrame) -> pd.DataFrame:
     confirmed = df[df.Case_status == "confirmed"][["Age", "Gender"]]
     confirmed["Gender"] = confirmed.Gender.apply(

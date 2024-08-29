@@ -9,10 +9,14 @@ from obr.plots import (
     get_counts,
     get_age_bin_data,
     get_timeseries_location_status,
+    get_countries_with_status,
+    get_countries_with_anyof_statuses,
 )
 from obr.util import read_csv
 
 DATA = read_csv(Path(__file__).with_name("test_data.csv"), date_columns=["Data_up_to"])
+STATUS_DATA = read_csv(Path(__file__).with_name("test_status_data.csv"))
+
 
 EXPECTED_TIMESERIES_LOCATION_STATUS = """Date_onset_estimated,daily_confirmed,daily_probable,cumulative_confirmed,cumulative_probable,Location_District
 2023-02-06,0,1,0,1,Bata
@@ -38,6 +42,25 @@ EXPECTED_TIMESERIES_LOCATION_STATUS = """Date_onset_estimated,daily_confirmed,da
 )
 def test_get_delays(column, expected_delay_series):
     assert list(get_delays(DATA, column).dt.days) == expected_delay_series
+
+
+def test_get_countries_with_anyof_statuses():
+    assert get_countries_with_anyof_statuses(
+        STATUS_DATA, "Country", ["confirmed", "suspected"]
+    ) == {"n_countries_confirmed_or_suspected": 3}
+
+
+def test_get_countries_with_status():
+    assert get_countries_with_status(
+        STATUS_DATA, "Country", ["confirmed", "suspected", "probable"]
+    ) == {
+        "n_countries_confirmed": 2,
+        "n_countries_confirmed_only": 1,
+        "n_countries_probable": 1,
+        "n_countries_probable_only": 1,
+        "n_countries_suspected": 2,
+        "n_countries_suspected_only": 1,
+    }
 
 
 def test_get_age_bin_data():
