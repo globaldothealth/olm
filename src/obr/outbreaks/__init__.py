@@ -87,7 +87,14 @@ outbreak_mpox_2024 = [
 ]
 
 OUTBREAKS = {
-    "marburg": {"plots": outbreak_marburg, "additional_date_columns": ["Data_up_to"]},
-    "mpox-2024": {"plots": outbreak_mpox_2024},
+    "marburg": {
+        "description": "Marburg 2023 [GHL2023.D11.1D60.1]",
+        "plots": outbreak_marburg,
+        "additional_date_columns": ["Data_up_to"],
+    },
+    "mpox-2024": {
+        "description": "Mpox 2024 [GHL2024.D11.1E71]",
+        "plots": outbreak_mpox_2024,
+    },
 }
 __all__ = ["OUTBREAKS"]
