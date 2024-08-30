@@ -212,7 +212,7 @@ def build(
     if output_bucket:
         store_s3(
             report_data,
-            [output_file, f"{outbreak_name}_{date}.html"],
+            [f"{outbreak_name}/index.html", f"{outbreak_name}/{date}.html"],
             bucket_name=output_bucket,
             content_type="text/html",
         )
