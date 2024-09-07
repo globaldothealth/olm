@@ -178,7 +178,7 @@ def build(
     data_url
         Data file for the outbreak, can be a S3 URL
     plots
-        List of plot specifications for the outbreak, such as those
+        List of plot or table specifications for the outbreak, such as those
         in :module:`obr.outbreaks`
     date_columns
         If specified, lists additional date columns to be passed to read_csv()
@@ -198,13 +198,20 @@ def build(
     df = read_csv(data_url, date_columns)
     for plot in plots:
         kwargs = {} if len(plot) == 2 else plot[2]
-        if plot[0] == "data":
-            var.update(plot[1](df, **kwargs))
-        else:
-            assert plot[0].startswith("figure")
-            var.update(
-                render_figure(plot[1](df, **kwargs), plot[0].removeprefix("figure/"))
-            )
+        plot_type = plot[0].split("/")[0]
+        match plot_type:
+            case "data":
+                var.update(plot[1](df, **kwargs))
+            case "table":
+                var[plot[0].removeprefix("table/")] = plot[1](**kwargs).to_html(
+                    index=False
+                )
+            case "figure":
+                var.update(
+                    render_figure(
+                        plot[1](df, **kwargs), plot[0].removeprefix("figure/")
+                    )
+                )
 
     report_data = render(template, var)
     Path(output_file).write_text(report_data)
