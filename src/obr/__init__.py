@@ -21,7 +21,7 @@ def main():
     report_parser = subparsers.add_parser("report", help="Generate briefing report")
     _ = subparsers.add_parser("list", help="List outbreaks known to obr")
     report_parser.add_argument("outbreak", help="Outbreak name")
-    report_parser.add_argument("url", help="Data URL")
+    report_parser.add_argument("--data", help="Data URL")
     report_parser.add_argument(
         "-b", "--bucket", help="S3 bucket to write outbreak report to"
     )
@@ -44,7 +44,7 @@ def main():
                 abort(f"Outbreak not supported: {args.outbreak}")
             build(
                 args.outbreak,
-                args.url,
+                args.data or OUTBREAKS[args.outbreak]["url"],
                 OUTBREAKS[args.outbreak]["plots"],
                 date_columns=OUTBREAKS[args.outbreak].get(
                     "additional_date_columns", []
