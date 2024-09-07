@@ -203,7 +203,7 @@ def build(
             case "data":
                 var.update(plot[1](df, **kwargs))
             case "table":
-                var[plot[0].removeprefix("table/")] = plot[1](**kwargs).to_html(
+                var[plot[0].removeprefix("table/")] = plot[1](df, **kwargs).to_html(
                     index=False
                 )
             case "figure":

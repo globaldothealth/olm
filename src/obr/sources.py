@@ -13,7 +13,7 @@ DOWNLOADS = Path(os.getenv("OBT_DOWNLOAD_FOLDER", Path.home() / "Downloads"))
 
 
 def source_databutton(
-    link: str, button_text: str, download_folder: Path = DOWNLOADS
+    _, link: str, button_text: str, download_folder: Path = DOWNLOADS
 ) -> pd.DataFrame:
     options = webdriver.FirefoxOptions()
     options.headless = True
