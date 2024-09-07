@@ -11,6 +11,7 @@ from ..plots import (
     plot_age_gender,
     plot_delay_distribution,
 )
+from ..sources import source_databutton
 
 outbreak_marburg = [
     ("data", get_counts, {"date_col": "Data_up_to"}),
@@ -54,6 +55,14 @@ outbreak_marburg = [
 outbreak_mpox_2024 = [
     ("data", get_counts, {"date_col": "Date_entry"}),
     (
+        "table/clades",
+        source_databutton,
+        {
+            "link": "https://worldhealthorg.shinyapps.io/mpx_global/",
+            "button_text": "Download MPXV clades",
+        },
+    ),
+    (
         "data",
         get_countries_with_status,
         {"country_col": "Location_Admin0", "statuses": ["confirmed", "suspected"]},
@@ -68,7 +77,7 @@ outbreak_mpox_2024 = [
         plot_epicurve,
         {
             "title": "Date of report in primary source",
-            "date_col": "Source_I_Date report",
+            "date_col": "Date_report_source_I",
             "groupby_col": "Case_status",
             "values": ["confirmed", "suspected"],
         },
@@ -95,6 +104,7 @@ OUTBREAKS = {
     "mpox-2024": {
         "description": "Mpox 2024 [GHL2024.D11.1E71]",
         "plots": outbreak_mpox_2024,
+        "url": "https://mpox-2024.s3.eu-central-1.amazonaws.com/latest.csv",
     },
 }
 __all__ = ["OUTBREAKS"]
