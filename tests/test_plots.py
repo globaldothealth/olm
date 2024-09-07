@@ -5,6 +5,7 @@ import pandas as pd
 
 from obr.plots import (
     get_epicurve,
+    get_aggregate,
     get_delays,
     get_counts,
     get_age_bin_data,
@@ -16,7 +17,6 @@ from obr.util import read_csv
 
 DATA = read_csv(Path(__file__).with_name("test_data.csv"), date_columns=["Data_up_to"])
 STATUS_DATA = read_csv(Path(__file__).with_name("test_status_data.csv"))
-
 
 EXPECTED_TIMESERIES_LOCATION_STATUS = """Date_onset_estimated,daily_confirmed,daily_probable,cumulative_confirmed,cumulative_probable,Location_District
 2023-02-06,0,1,0,1,Bata
@@ -42,6 +42,14 @@ EXPECTED_TIMESERIES_LOCATION_STATUS = """Date_onset_estimated,daily_confirmed,da
 )
 def test_get_delays(column, expected_delay_series):
     assert list(get_delays(DATA, column).dt.days) == expected_delay_series
+
+
+def test_aggregate():
+    assert get_aggregate(
+        DATA, "Country", [("Case_status", "confirmed"), ("Outcome", "death")]
+    ).equals(
+        pd.DataFrame({"Country": ["A", "B"], "confirmed": [2, 3], "death": [2, 2]})
+    )
 
 
 def test_get_countries_with_anyof_statuses():

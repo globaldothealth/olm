@@ -36,6 +36,16 @@ REGEX_DATE = r"^202\d-[0,1]\d-[0-3]\d"
 pd.options.mode.chained_assignment = None
 
 
+def get_aggregate(
+    df: pd.DataFrame, country_col: str, columns=list[tuple[str, str]]
+) -> pd.DataFrame:
+    "Get aggregate for line list"
+    dfs = []
+    for col, value in columns:
+        dfs.append(df[df[col] == value].groupby(country_col).size().rename(value))
+    return pd.DataFrame(dfs).T.fillna(0).astype(int).reset_index()
+
+
 def get_countries_with_status(
     df: pd.DataFrame,
     country_col: str,
