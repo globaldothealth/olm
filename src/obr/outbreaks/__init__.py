@@ -4,6 +4,7 @@ Outbreak configurations
 
 from ..plots import (
     get_counts,
+    get_aggregate,
     get_countries_with_status,
     get_countries_with_anyof_statuses,
     plot_epicurve,
@@ -60,6 +61,14 @@ outbreak_mpox_2024 = [
         {
             "link": "https://worldhealthorg.shinyapps.io/mpx_global/",
             "button_text": "Download MPXV clades",
+        },
+    ),
+    (
+        "table/aggregate",
+        get_aggregate,
+        {
+            "country_col": "Location_Admin0",
+            "columns": [("Case_status", "confirmed"), ("Outcome", "death")],
         },
     ),
     (
