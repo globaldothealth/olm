@@ -2,6 +2,7 @@
 Outbreak configurations
 """
 
+import pandas as pd
 from ..plots import (
     get_counts,
     get_aggregate,
@@ -12,6 +13,7 @@ from ..plots import (
     plot_age_gender,
     plot_delay_distribution,
 )
+from ..util import read_csv
 from ..sources import source_databutton
 
 outbreak_marburg = [
@@ -116,4 +118,18 @@ OUTBREAKS = {
         "url": "https://mpox-2024.s3.eu-central-1.amazonaws.com/latest.csv",
     },
 }
+
+
+def read_outbreak(outbreak: str, data_url: str | None = None) -> pd.DataFrame:
+    assert outbreak in OUTBREAKS, f"Outbreak {outbreak} not found"
+    if data_url is None and OUTBREAKS[outbreak].get("url") is None:
+        raise ValueError(
+            f"Either data_url should be specified or the url key should exist for outbreak: {outbreak}"
+        )
+    return read_csv(
+        data_url or OUTBREAKS[outbreak]["url"],
+        additional_date_columns=OUTBREAKS[outbreak].get("additional_date_columns", []),
+    )
+
+
 __all__ = ["OUTBREAKS"]
