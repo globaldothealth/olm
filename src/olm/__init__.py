@@ -45,6 +45,7 @@ def main():
     lint_parser.add_argument("outbreak", help="Outbreak name")
     lint_parser.add_argument("--data", help="Data URL")
     lint_parser.add_argument("--schema", help="Data schema path or URL")
+    lint_parser.add_argument("--ignore", help="Ignore fields, comma-separated")
 
     get_parser = subparsers.add_parser("get", help="Get data for outbreak")
     get_parser.add_argument("outbreak", help="Outbreak name")
@@ -71,6 +72,7 @@ def main():
             + ", ".join(OUTBREAKS)
             + "\033[0m"
         )
+    bold_outbreak = f"\033[1m{args.outbreak}\033[0m"
 
     match args.command:
         case "list":
@@ -80,7 +82,7 @@ def main():
                 )
         case "get":
             if "url" not in OUTBREAKS[args.outbreak]:
-                abort(f"no data URL found for \033[1m{args.outbreak}\033[0m")
+                abort(f"no data URL found for {bold_outbreak}")
             output_file = f"{args.outbreak}.csv"
             if (
                 res := requests.get(OUTBREAKS[args.outbreak]["url"])
@@ -88,11 +90,13 @@ def main():
                 Path(output_file).write_text(res.text)
                 msg_ok("get", "wrote " + output_file)
         case "lint":
-            lint_result = lint(args.outbreak, args.data, args.schema)
-            if lint_result.ok:
-                msg_ok("lint", "succeeded for " + args.outbreak)
+            ignore_keys = args.ignore.split(",") if args.ignore is not None else []
+            if (
+                lint_result := lint(args.outbreak, args.data, args.schema, ignore_keys)
+            ).ok:
+                msg_ok("lint", "succeeded for " + bold_outbreak)
             else:
-                msg_fail("lint", "failed for " + args.outbreak)
+                msg_fail("lint", "failed for " + bold_outbreak)
                 print(lint_result)
         case "report":
             make_report(

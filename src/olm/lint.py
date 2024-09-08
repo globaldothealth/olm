@@ -13,7 +13,10 @@ import fastjsonschema
 
 
 def lint(
-    outbreak: str, file: str | None = None, schema_path: str | Path | None = None
+    outbreak: str,
+    file: str | None = None,
+    schema_path: str | Path | None = None,
+    ignore_fields: list[str] = [],
 ) -> LintResult:
     errors: list[RowError] = []
     # do not convert dates as fastjsonschema will check date string representation
@@ -25,7 +28,9 @@ def lint(
 
     for row in df.to_dict("records"):
         id = row["ID"]
-        nrow = {k: v for k, v in row.items() if pd.notnull(v)}
+        nrow = {
+            k: v for k, v in row.items() if pd.notnull(v) and k not in ignore_fields
+        }
         try:
             validator(nrow)
         except fastjsonschema.JsonSchemaValueException as e:
