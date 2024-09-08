@@ -3,7 +3,7 @@ import argparse
 import webbrowser
 import urllib
 from pathlib import Path
-from .util import build
+from .report import make_report
 from .outbreaks import OUTBREAKS
 
 USAGE = """olm: Office for Linelist Management
@@ -70,7 +70,7 @@ def main():
         case "report":
             if args.outbreak not in OUTBREAKS:
                 abort(f"Outbreak not supported: {args.outbreak}")
-            build(
+            make_report(
                 args.outbreak,
                 args.data or OUTBREAKS[args.outbreak]["url"],
                 OUTBREAKS[args.outbreak]["plots"],
