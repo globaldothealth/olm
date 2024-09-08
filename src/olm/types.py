@@ -30,15 +30,33 @@ class RowError(NamedTuple):
 class LintResult:
     outbreak: str
     schema: str
-    filehash: str
     ok: bool
     errors: list[RowError]
 
     def as_json(self) -> str:
         return json.dumps(dataclasses.asdict(self), sort_keys=True, indent=2)
 
+    def __str__(self) -> str:
+        header = (
+            "✅ Lint succeeded for " if self.ok else "❌ Lint failed for "
+        ) + f"\033[1m{self.outbreak}\033[0m\n"
+        if self.ok:
+            return header
+        errors = "\n".join(
+            f"- ID {e.id}: {e.message}, found={e.value}" for e in self.errors
+        )
+        return header + errors
+
     def as_html(self) -> str:
         pass
 
     def as_slack(self) -> str:
-        pass
+        header = (
+            "✅ Lint succeeded for " if self.ok else "❌ Lint failed for "
+        ) + f"*{self.outbreak}*"
+        if self.ok:
+            return header
+        errors = "\n".join(
+            f"- ID {e.id}: {e.message}, found={e.value}" for e in self.errors
+        )
+        return header + "\n" + errors

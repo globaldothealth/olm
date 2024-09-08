@@ -82,7 +82,7 @@ def main():
                 Path(output_file).write_text(res.text)
                 print("wrote", output_file)
         case "lint":
-            lint(args.outbreak, args.data)
+            print(lint(args.outbreak, args.data))
         case "report":
             make_report(
                 args.outbreak,

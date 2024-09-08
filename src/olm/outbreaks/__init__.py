@@ -130,14 +130,17 @@ OUTBREAKS: dict[str, OutbreakInfo] = {
 }
 
 
-def read_schema(outbreak_or_schema: str | Path) -> dict[str, Any]:
+def get_schema_url(outbreak: str) -> str | None:
+    return OUTBREAKS[outbreak].get("schema")
+
+
+def read_schema(schema: str | Path) -> dict[str, Any]:
     "Reads schema from outbreak"
-    if isinstance(outbreak_or_schema, Path):
-        return json.loads(outbreak_or_schema.read_text())
-    schema = OUTBREAKS[outbreak_or_schema]["schema"]
-    if schema.startswith("http"):
+    if isinstance(schema, str) and schema.startswith("http"):
         if (res := requests.get(schema)).status_code == 200:
             return res.json()
+    else:
+        return json.loads(Path(schema).read_text())
 
 
 def read_outbreak(

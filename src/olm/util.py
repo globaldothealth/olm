@@ -7,7 +7,6 @@ import logging
 import datetime
 
 import boto3
-
 import pandas as pd
 
 

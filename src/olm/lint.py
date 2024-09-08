@@ -6,17 +6,21 @@ from pathlib import Path
 
 import pandas as pd
 
-from .types import LintResult
-from .outbreaks import read_outbreak, read_schema
+from .types import LintResult, RowError
+from .outbreaks import read_outbreak, read_schema, get_schema_url
 
 import fastjsonschema
 
 
-def lint(outbreak: str, file: str | None = None) -> LintResult:
-    errors = []
+def lint(
+    outbreak: str, file: str | None = None, schema_path: str | Path | None = None
+) -> LintResult:
+    errors: list[RowError] = []
     # do not convert dates as fastjsonschema will check date string representation
     df = read_outbreak(outbreak, file, convert_dates=False)
-    schema = read_schema(Path("GHL2024.D11.1E71.schema.json"))
+    if (schema_url := schema_path or get_schema_url(outbreak)) is None:
+        raise ValueError("No schema_path passed or schema url found in OUTBREAKS")
+    schema = read_schema(schema_url)
     validator = fastjsonschema.compile(schema)
 
     for row in df.to_dict("records"):
@@ -25,5 +29,6 @@ def lint(outbreak: str, file: str | None = None) -> LintResult:
         try:
             validator(nrow)
         except fastjsonschema.JsonSchemaValueException as e:
-            print(f"ID {id}: {e}, found: {nrow[e.path[1]]}")
-    return LintResult(outbreak, schema, "", len(errors) == 0, errors)
+            column = e.path[1]
+            errors.append(RowError(id, column, nrow[column], e.message))
+    return LintResult(outbreak, str(schema_url), len(errors) == 0, errors)
