@@ -73,10 +73,7 @@ def main():
             make_report(
                 args.outbreak,
                 args.data or OUTBREAKS[args.outbreak]["url"],
-                OUTBREAKS[args.outbreak]["plots"],
-                date_columns=OUTBREAKS[args.outbreak].get(
-                    "additional_date_columns", []
-                ),
+                OUTBREAKS[args.outbreak],
                 output_bucket=args.bucket,
                 cloudfront_distribution=args.cloudfront,
             )

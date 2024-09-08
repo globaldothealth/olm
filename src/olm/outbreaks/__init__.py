@@ -2,7 +2,6 @@
 Outbreak configurations
 """
 
-from typing import TypedDict, Callable, Any, NotRequired
 import pandas as pd
 from ..plots import (
     get_counts,
@@ -14,16 +13,9 @@ from ..plots import (
     plot_age_gender,
     plot_delay_distribution,
 )
+from ..types import OutbreakInfo
 from ..util import read_csv
 from ..sources import source_databutton
-
-
-class OutbreakInfo(TypedDict):
-    id: str
-    description: str
-    plots: list[tuple[str, Callable[..., Any], dict[str, Any]]]
-    additional_date_columns: NotRequired[list[str]]
-    url: NotRequired[str]
 
 
 outbreak_marburg = [
@@ -119,7 +111,7 @@ outbreak_mpox_2024 = [
 OUTBREAKS: dict[str, OutbreakInfo] = {
     "marburg": {
         "id": "GHL2023.D11.1D60.1",
-        "description": "Marburg 2023",
+        "description": "Marburg 2023 Equatorial Guinea",
         "plots": outbreak_marburg,
         "additional_date_columns": ["Data_up_to"],
     },

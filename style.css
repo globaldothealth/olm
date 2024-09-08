@@ -1,0 +1,169 @@
+@import url('https://global.health/wp-content/themes/bridge/css/fonts/mabry-bold-pro-web/web/stylesheet.css');
+@import url('https://global.health/wp-content/themes/bridge/css/fonts/mabry-medium-pro-web/web/stylesheet.css');
+@import url('https://global.health/wp-content/themes/bridge/css/fonts/mabry-regular-pro-web/web/stylesheet.css');
+
+body {
+  margin: auto;
+  max-width: 800px;
+  padding: 10px;
+}
+
+table {
+  margin: auto;
+  width: 100%;
+  border: 0;
+}
+th {
+  border: 0;
+  border-bottom: 1px solid black;
+  text-align: left;
+}
+p {
+  line-height: 1.3;
+}
+td {
+  border: 0;
+  border-bottom: 1px solid silver;
+}
+th,
+td {
+  padding: 5px;
+  font-size: 85%;
+}
+body,
+p {
+  font-family: Inter, sans-serif;
+  color: #1e1e1e;
+}
+
+a {
+  color: #0e7569;
+  text-decoration: underline;
+  text-decoration-color: darkseagreen;
+  text-decoration-thickness: 2px;
+}
+
+a:hover {
+  text-decoration-color: #0e7569;
+  text-decoration-thickness: 2px;
+}
+
+body {
+  background-color: #ecf3f0;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: 'mabry-medium-pro', Helvetica, Arial, sans-serif;
+  line-height: 1.2em;
+  font-weight: normal;
+  letter-spacing: 0;
+  font-weight: 500;
+}
+
+p.summary,
+p.byline {
+  font-family: 'mabry-regular-pro', Helvetica, Arial, sans-serif;
+}
+
+p.summary {
+  font-size: 23px;
+}
+
+nav ul {
+  float: right;
+  display: block;
+}
+
+nav ul li {
+  display: inline;
+  vertical-align: top;
+  padding: 2px;
+  font-family: 'mabry-regular-pro', Helvetica, Arial, sans-serif;
+}
+
+div.info {
+  color: white;
+  padding: 2px 20px;
+  background: #007aec;
+  border-radius: 5px;
+}
+
+div.info p {
+  font-family: 'mabry-regular-pro', Helvetica, Arial, sans-serif;
+  color: white;
+}
+
+div.info a {
+  color: white;
+  text-decoration: underline;
+}
+
+nav ul a {
+  color: #444;
+  padding: 10px;
+  text-decoration: underline;
+}
+
+nav ul a:hover {
+  background-color: #e0e0e0;
+}
+
+figure img,
+figure div {
+  display: block;
+  margin: 0;
+}
+
+figure.mainfigure {
+  width: 110%;
+  margin-left: -35px;
+}
+
+figure {
+  margin: 0;
+  margin-bottom: 20px;
+}
+
+figcaption::before {
+  content: '▲';
+}
+
+figcaption {
+  font-family: 'mabry-regular-pro', Helvetica, Arial, sans-serif;
+  margin-top: 5px;
+  line-height: 1.3;
+  color: #454545;
+  font-size: 90%;
+}
+
+figure.mainfigure figcaption {
+  margin-left: 35px;
+}
+
+img.logo {
+  height: 70px;
+}
+
+p.print {
+  display: none;
+}
+
+@media print {
+  figure.mainfigure {
+    page-break-before: always;
+  }
+
+  p.print {
+    display: block;
+    color: #111;
+  }
+
+  nav ul {
+    display: none;
+  }
+}

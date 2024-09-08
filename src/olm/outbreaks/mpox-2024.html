@@ -1,107 +1,55 @@
-<!DOCTYPE html>
-<html>
+<p class="summary">
+    <strong>{{ n_confirmed }}</strong> confirmed and <strong>{{ n_suspected }}</strong>
+    suspected cases as of {{ date }}
+</p>
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Mpox 2024 Outbreak - {{ published_date }}</title>
-    <meta name="description" content="Mpox 2024 outbreak briefing report from Global.health">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/light.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://www.monkeypox.global.health/style.css">
-    <link rel="shortcut icon" type="image/x-icon"
-        href="https://global.health/wp-content/uploads/2020/10/gs-favicon-green.png">
-    <link rel="apple-touch-icon" href="https://global.health/wp-content/uploads/2020/10/gs-favicon-green.png">
-    <script src="https://cdn.plot.ly/plotly-2.12.1.min.js"></script>
-</head>
+<p>The Mpox 2024 outbreak has been detected in {{ n_countries_confirmed_or_suspected }} countries, with
+    either confirmed or suspected cases</p>.
 
-<body>
-    <nav>
-        <ul>
-            <li><a href="https://mpox-2024.s3.eu-central-1.amazonaws.com/latest.csv">Data</a></li>
-            <li><a href="https://github.com/globaldothealth/outbreak-data/wiki/GHL2024.D11.1E71">GitHub</a></li>
-        </ul>
-        <img class="logo" src="https://global.health/wp-content/uploads/2020/07/gh-logo-full-black.png"
-            alt="Global.health logo"></li>
-    </nav>
-    <main>
-        <h1>Mpox 2024 Outbreak</h1>
-        <p class="byline">From the <a href="https://global.health">Global.health</a> team (<a
-                href="mailto:info@global.health">info@global.health</a>). Published on {{ published_date}}
-        </p>
+<figure>
 
-        <h2>Summary</h2>
+    {{{ epicurve_source_report }}}
 
-        {{#info}}
-        <div class="info">
-            <p>{{ info }}</p>
-        </div>
-        {{/info}}
+    <figcaption>
+        <strong>Figure 1</strong>: Number of cumulative confirmed and suspected cases
+        by date of report in the primary source.
+    </figcaption>
+</figure>
 
-        <p class="summary">
-            <strong>{{ n_confirmed }}</strong> confirmed and <strong>{{ n_suspected }}</strong>
-            suspected cases as of {{ date }}
-        </p>
+<figure>
 
-        <p>The Mpox 2024 outbreak has been detected in {{ n_countries_confirmed_or_suspected }} countries, with
-            either confirmed or suspected cases</p>.
+    {{{ epicurve_confirmed }}}
 
-        <figure>
+    <figcaption>
+        <strong>Figure 2</strong>: Number of cumulative confirmed cases
+        by date of confirmation.
+    </figcaption>
+</figure>
 
-            {{{ epicurve_source_report }}}
+<figure>
 
-            <figcaption>
-                <strong>Figure 1</strong>: Number of cumulative confirmed and suspected cases
-                by date of report in the primary source.
-            </figcaption>
-        </figure>
+    {{{ aggregate }}}
 
-        <figure>
+    <figcaption>
+        <strong>Table 1</strong>: Aggregate data of confirmed cases and deaths by country
+    </figcaption>
+</figure>
+<figure>
 
-            {{{ epicurve_confirmed }}}
+    {{{ age_gender }}}
+    <figcaption>
+        <strong>Figure 3</strong>: Age and gender distribution of
+        Mpox cases in the current outbreak.
+        {{ pc_valid_age_gender }}% of confirmed cases include
+        sufficient metadata to be included in this figure. When reported
+        age ranges span multiple age categories, counts are evenly
+        distributed among the categories that capture the reported age
+        range.
+    </figcaption>
+</figure>
 
-            <figcaption>
-                <strong>Figure 2</strong>: Number of cumulative confirmed cases
-                by date of confirmation.
-            </figcaption>
-        </figure>
-
-        <figure>
-
-            {{{ aggregate }}}
-
-            <figcaption>
-                <strong>Table 1</strong>: Aggregate data of confirmed cases and deaths by country
-            </figcaption>
-        </figure>
-        <figure>
-
-            {{{ age_gender }}}
-            <figcaption>
-                <strong>Figure 3</strong>: Age and gender distribution of
-                Mpox cases in the current outbreak.
-                {{ pc_valid_age_gender }}% of confirmed cases include
-                sufficient metadata to be included in this figure. When reported
-                age ranges span multiple age categories, counts are evenly
-                distributed among the categories that capture the reported age
-                range.
-            </figcaption>
-        </figure>
-
-        <figure>
-            {{{ clades }}}
-            <figcaption><strong>Table 2</strong>: MPXV clade distribution, source:
-             <a href="https://worldhealthorg.shinyapps.io/mpx_global/">WHO Mpox briefing report</a></figcaption>
-        </figure>
-
-        <p><strong>Data accessibility and reproducibility</strong>: All data
-            used in this report are available from our data repository Should you identify any issues or have questions please
-            raise an issue on <a href="https://github.com/globaldothealth/outbreak-data">GitHub</a> or write to
-            us: <a href="mailto:info@global.health">info@global.health</a>.</p>
-            If you cite this report, please also cite the relevant sources, which are
-            mentioned in our <a href="https://github.com/globaldothealth/outbreak-data/wiki/GHL2024.D11.1E71">outbreak information page</a>.
-
-    </main>
-</body>
-
-</html>
+<figure>
+    {{{ clades }}}
+    <figcaption><strong>Table 2</strong>: MPXV clade distribution, source:
+        <a href="https://worldhealthorg.shinyapps.io/mpx_global/">WHO Mpox briefing report</a></figcaption>
+</figure>

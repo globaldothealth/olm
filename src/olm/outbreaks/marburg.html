@@ -1,108 +1,57 @@
-<!DOCTYPE html>
-<html>
+<p class="summary">
+    <strong>{{ n_confirmed }}</strong> confirmed and <strong>{{ n_probable }}</strong>
+    probable cases as of {{ date }}
+</p>
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Marburg 2023 Equatorial Guinea Outbreak - {{ published_date }}</title>
-    <meta name="description" content="Marburg 2023 outbreak briefing report from Global.health">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://www.monkeypox.global.health/style.css">
-    <link rel="shortcut icon" type="image/x-icon"
-        href="https://global.health/wp-content/uploads/2020/10/gs-favicon-green.png">
-    <link rel="apple-touch-icon" href="https://global.health/wp-content/uploads/2020/10/gs-favicon-green.png">
-    <script src="https://cdn.plot.ly/plotly-2.12.1.min.js"></script>
-</head>
+<figure>
 
-<body>
-    <nav>
-        <ul>
-            <li><a href="https://l66noa47nk.execute-api.eu-central-1.amazonaws.com/web">Data</a></li>
-            <li><a href="https://github.com/globaldothealth/marburg">GitHub</a></li>
-        </ul>
-        <img class="logo" src="https://global.health/wp-content/uploads/2020/07/gh-logo-full-black.png"
-            alt="Global.health logo"></li>
-    </nav>
-    <main>
-        <h1>Marburg 2023 Equatorial Guinea Outbreak<br>{{ published_date }}</h1>
-        <p class="byline">From the <a href="https://global.health">Global.health</a> team (<a
-                href="mailto:info@global.health">info@global.health</a>)
-        </p>
+    {{{ epicurve }}}
 
-        <h2>Summary</h2>
+    <figcaption>
+        <strong>Figure 1</strong>: Number of cumulative confirmed and probable cases
+        by date of onset. Where date of onset is not available, it is
+        estimated from the date of first consult/hospitalisation or date
+        of death, by shifting the value by the delay distribution mean.
+        Only cases where date of onset is known or can be estimated are shown.
+    </figcaption>
+</figure>
 
-        {{#info}}
-        <div class="info">
-            <p>{{ info }}</p>
-        </div>
-        {{/info}}
+<figure>
 
-        <p class="summary">
-            <strong>{{ n_confirmed }}</strong> confirmed and <strong>{{ n_probable }}</strong>
-            probable cases as of {{ date }}
-        </p>
+    {{{ epicurve_location_status }}}
 
-        <figure>
+    <figcaption>
+        <strong>Figure 2</strong>: Number of cumulative confirmed and probable cases
+        stratified by district. Date of onset is estimated when not available as in Figure 1.
+        Only cases where date of onset is known or can be estimated and have a corresponding
+        district are shown.
+    </figcaption>
+</figure>
 
-            {{{ epicurve }}}
+<figure>
 
-            <figcaption>
-                <strong>Figure 1</strong>: Number of cumulative confirmed and probable cases
-                by date of onset. Where date of onset is not available, it is
-                estimated from the date of first consult/hospitalisation or date
-                of death, by shifting the value by the delay distribution mean.
-                Only cases where date of onset is known or can be estimated are shown.
-            </figcaption>
-        </figure>
+    {{{ age_gender }}}
+    <figcaption>
+        <strong>Figure 3</strong>: Age and gender distribution of
+        Marburg 2023 confirmed cases in Equatorial Guinea.
+        {{ pc_valid_age_gender }}% of confirmed cases include
+        sufficient metadata to be included in this figure. When reported
+        age ranges span multiple age categories, counts are evenly
+        distributed among the categories that capture the reported age
+        range.
+    </figcaption>
+</figure>
 
-        <figure>
+<figure>
 
-            {{{ epicurve_location_status }}}
+    {{{ delay_distribution_consult }}}
 
-            <figcaption>
-                <strong>Figure 2</strong>: Number of cumulative confirmed and probable cases
-                stratified by district. Date of onset is estimated when not available as in Figure 1.
-                Only cases where date of onset is known or can be estimated and have a corresponding
-                district are shown.
-            </figcaption>
-        </figure>
+    {{{ delay_distribution_death }}}
 
-        <figure>
-
-            {{{ age_gender }}}
-            <figcaption>
-                <strong>Figure 3</strong>: Age and gender distribution of
-                Marburg 2023 confirmed cases in Equatorial Guinea.
-                {{ pc_valid_age_gender }}% of confirmed cases include
-                sufficient metadata to be included in this figure. When reported
-                age ranges span multiple age categories, counts are evenly
-                distributed among the categories that capture the reported age
-                range.
-            </figcaption>
-        </figure>
-
-        <figure>
-
-            {{{ delay_distribution_consult }}}
-
-            {{{ delay_distribution_death }}}
-
-            <figcaption>
-                <strong>Figure 4</strong>: Delay distributions from date of
-                symptom onset A) Between onset and first consult B) Between
-                onset and death. Only includes cases that have both date of onset
-                and either date of first consult (A) or date of death (B).
-            </figcaption>
-        </figure>
-
-        <p><strong>Data accessibility and reproducibility</strong>: All data
-            used in this report are available from our <a
-                href="https://l66noa47nk.execute-api.eu-central-1.amazonaws.com/web">data
-                repository</a>. Should you identify any issues or have questions please
-            raise an issue on <a href="https://github.com/globaldothealth/marburg">GitHub</a> or write to
-            us: <a href="mailto:info@global.health">info@global.health</a>.</p>
-
-    </main>
-</body>
-
-</html>
+    <figcaption>
+        <strong>Figure 4</strong>: Delay distributions from date of
+        symptom onset A) Between onset and first consult B) Between
+        onset and death. Only includes cases that have both date of onset
+        and either date of first consult (A) or date of death (B).
+    </figcaption>
+</figure>

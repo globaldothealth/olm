@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ description }} Outbreak - {{ published_date }}</title>
+    <meta name="description" content="{{ description }} outbreak briefing report from Global.health">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://reports.global.health/style.css">
+    <link rel="shortcut icon" type="image/x-icon"
+        href="https://global.health/wp-content/uploads/2020/10/gs-favicon-green.png">
+    <link rel="apple-touch-icon" href="https://global.health/wp-content/uploads/2020/10/gs-favicon-green.png">
+    <script src="https://cdn.plot.ly/plotly-2.12.1.min.js"></script>
+</head>
+
+<body>
+    <nav>
+        <ul>
+            <li><a href="{{ data_url }}">Data</a></li>
+            <li><a href="https://github.com/globaldothealth/outbreak-data/wiki/{{ id }}">GitHub</a></li>
+        </ul>
+        <img class="logo" src="https://global.health/wp-content/uploads/2020/07/gh-logo-full-black.png"
+            alt="Global.health logo"></li>
+    </nav>
+<main>
+<h1>{{ description }} Outbreak</h1>
+<p class="byline">From the <a href="https://global.health">Global.health</a> team (<a
+        href="mailto:info@global.health">info@global.health</a>). Published on {{ published_date}}
+</p>
+<h2>Summary</h2>
+{{#info}}
+<div class="info">
+    <p>{{ info }}</p>
+</div>
+{{/info}}

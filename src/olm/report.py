@@ -3,22 +3,17 @@ Briefing report generator module
 """
 
 import datetime
-from typing import Callable, Any
 from pathlib import Path
 
 import chevron
 import plotly.io
-import plotly.graph_objects as go
 
+from .types import OutbreakInfo
 from .util import read_csv, store_s3, invalidate_cache
 
-PlotFunction = Callable[..., dict[str, Any] | go.Figure]
-PlotData = tuple[str, PlotFunction, dict[str, Any]]
-
-
-def render(template: Path, variables: dict[str, Any]) -> str:
-    with template.open() as f:
-        return chevron.render(f, variables)
+TEMPLATES = Path(__file__).parent / "outbreaks"
+HEADER = (TEMPLATES / "_header.html").read_text()
+FOOTER = (TEMPLATES / "_footer.html").read_text()
 
 
 def render_figure(fig, key: str) -> str:
@@ -28,8 +23,7 @@ def render_figure(fig, key: str) -> str:
 def make_report(
     outbreak_name: str,
     data_url: str,
-    plots: list[PlotData],
-    date_columns: list[str] = [],
+    outbreak_info: OutbreakInfo,
     output_bucket: str | None = None,
     cloudfront_distribution: str | None = None,
 ):
@@ -41,11 +35,8 @@ def make_report(
         Name of the outbreak
     data_url
         Data file for the outbreak, can be a S3 URL
-    plots
-        List of plot or table specifications for the outbreak, such as those
-        in :module:`olm.outbreaks`
-    date_columns
-        If specified, lists additional date columns to be passed to read_csv()
+    outbreak_info
+        Information about the outbreak, described in :module:`olm.outbreaks`
     output_bucket
         Output S3 bucket to write result to, in addition to local HTML output
         to {outbreak_name}.html
@@ -56,11 +47,16 @@ def make_report(
     assert " " not in outbreak_name, "Outbreak name should not have spaces"
     date = datetime.datetime.today().date()
     output_file = f"{outbreak_name}.html"
-    if not (template := Path(__file__).parent / "outbreaks" / output_file).exists():
+    if not (template := TEMPLATES / output_file).exists():
         raise FileNotFoundError(f"Template for outbreak not found at: {template}")
-    var = {"published_date": str(date)}
-    df = read_csv(data_url, date_columns)
-    for plot in plots:
+    template_text = HEADER + template.read_text() + FOOTER
+    var = {
+        "description": outbreak_info["description"],
+        "id": outbreak_info["id"],
+        "published_date": str(date),
+    }
+    df = read_csv(data_url, outbreak_info.get("additional_date_columns", []))
+    for plot in outbreak_info["plots"]:
         kwargs = {} if len(plot) == 2 else plot[2]
         plot_type = plot[0].split("/")[0]
         match plot_type:
@@ -77,7 +73,7 @@ def make_report(
                     )
                 )
 
-    report_data = render(template, var)
+    report_data = chevron.render(template_text, var)
     Path(output_file).write_text(report_data)
     print("wrote", output_file)
 
