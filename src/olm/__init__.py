@@ -44,6 +44,7 @@ def main():
     )
     lint_parser.add_argument("outbreak", help="Outbreak name")
     lint_parser.add_argument("--data", help="Data URL")
+    lint_parser.add_argument("--schema", help="Data schema path or URL")
 
     get_parser = subparsers.add_parser("get", help="Get data for outbreak")
     get_parser.add_argument("outbreak", help="Outbreak name")
@@ -87,7 +88,7 @@ def main():
                 Path(output_file).write_text(res.text)
                 msg_ok("get", "wrote " + output_file)
         case "lint":
-            lint_result = lint(args.outbreak, args.data)
+            lint_result = lint(args.outbreak, args.data, args.schema)
             if lint_result.ok:
                 msg_ok("lint", "succeeded for " + args.outbreak)
             else:
