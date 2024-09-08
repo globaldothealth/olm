@@ -1,13 +1,17 @@
-# obr
+# olm -- Office for Linelist Management
 
-Tool to generate OutBreak Reports
+`olm` is a tool to operate on linelists provided from Global.health
+(G.h). Linelists are epidemiological datasets with information about a
+disease outbreak organised into one row per case. Currently it supports
+generating briefing reports, fetching linelists and checking linelists
+against a provided schema.
 
 ## Installation
 
 Installation can be done via `pip`
 
 ```shell
-git clone https://github.com/globaldothealth/obr && cd obr
+git clone https://github.com/globaldothealth/olm && cd olm
 python3 -m venv .venv
 source .venv/bin/activate
 pip install .
@@ -16,19 +20,19 @@ pip install .
 Recommended method is to use [`uv`](https://docs.astral.sh/uv/getting-started/installation/)
 
 ```shell
-git clone https://github.com/globaldothealth/obr && cd obr
+git clone https://github.com/globaldothealth/olm && cd olm
 uv sync
-uv run obr
+uv run olm
 ```
 
 ## Usage
 
-`obr` is customised for Global.health usage, so may not work on
+`olm` is customised for Global.health usage, so may not work on
 arbitrary line lists. Outbreak reports are generated using
-[presets](src/obr/outbreaks/__init__.py). To see a list of presets:
+[presets](src/olm/outbreaks/__init__.py). To see a list of presets:
 
 ```shell
-$ uv run obr list
+$ uv run olm list
 marburg      Marburg 2023 [GHL2023.D11.1D60.1]
 mpox-2024    Mpox 2024 [GHL2024.D11.1E71]
 ```
@@ -36,7 +40,10 @@ mpox-2024    Mpox 2024 [GHL2024.D11.1E71]
 To generate a report for a particular outbreak, run
 
 ```shell
-uv run obr report <outbreak> <url>
+uv run olm report <outbreak> [<url>]
 ```
 
-where `<url>` is the data link on the [outbreak information page](https://github.com/globaldothealth/outbreak-data/wiki)
+where `<url>` is the data link on the [outbreak information
+page](https://github.com/globaldothealth/outbreak-data/wiki). By default
+`olm` will use the latest data file specified in the outbreak
+configuration to build the report.

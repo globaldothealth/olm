@@ -1,7 +1,7 @@
 [project]
-name = "obr"
+name = "olm"
 version = "0.1.0"
-description = "Add your description here"
+description = "Office for Linelist Management"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
@@ -12,7 +12,7 @@ dependencies = [
     "boto3>=1.35.8",
     "selenium>=4.24.0",
 ]
-scripts = { obr = "obr:main" }
+scripts = { olm = "olm:main" }
 
 [build-system]
 requires = ["hatchling"]

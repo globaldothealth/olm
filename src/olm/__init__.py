@@ -38,7 +38,7 @@ def main():
     report_parser = subparsers.add_parser("report", help="Generate briefing report")
     get_parser = subparsers.add_parser("get", help="Get data for outbreak")
     get_parser.add_argument("outbreak", help="Outbreak name")
-    _ = subparsers.add_parser("list", help="List outbreaks known to obr")
+    _ = subparsers.add_parser("list", help="List outbreaks managed by olm")
     report_parser.add_argument("outbreak", help="Outbreak name")
     report_parser.add_argument("--data", help="Data URL")
     report_parser.add_argument(

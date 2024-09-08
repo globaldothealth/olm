@@ -134,7 +134,7 @@ def invalidate_cache(
             DistributionId=distribution_id,
             InvalidationBatch={
                 "Paths": {"Quantity": len(paths), "Items": paths},
-                "CallerReference": f"obr_{datetime.datetime.now().isoformat()}",
+                "CallerReference": f"olm_report_{datetime.datetime.now().isoformat()}",
             },
         )
         logging.info(f"Invalidation ID: {invalidation['Invalidation']['Id']}")
@@ -179,7 +179,7 @@ def build(
         Data file for the outbreak, can be a S3 URL
     plots
         List of plot or table specifications for the outbreak, such as those
-        in :module:`obr.outbreaks`
+        in :module:`olm.outbreaks`
     date_columns
         If specified, lists additional date columns to be passed to read_csv()
     output_bucket

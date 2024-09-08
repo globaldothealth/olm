@@ -1,5 +1,5 @@
 """
-Theme and color settings for obr
+Theme and color settings
 """
 
 FONT = "Inter"

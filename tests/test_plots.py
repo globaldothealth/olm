@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 import pandas as pd
 
-from obr.plots import (
+from olm.plots import (
     get_epicurve,
     get_aggregate,
     get_delays,
@@ -13,7 +13,7 @@ from obr.plots import (
     get_countries_with_status,
     get_countries_with_anyof_statuses,
 )
-from obr.util import read_csv
+from olm.util import read_csv
 
 DATA = read_csv(Path(__file__).with_name("test_data.csv"), date_columns=["Data_up_to"])
 STATUS_DATA = read_csv(Path(__file__).with_name("test_status_data.csv"))

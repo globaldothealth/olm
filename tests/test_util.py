@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from obr.util import get_age_bins, name_bin, read_csv
+from olm.util import get_age_bins, name_bin, read_csv
 
 DATA = read_csv(Path(__file__).with_name("test_data.csv"))
 
