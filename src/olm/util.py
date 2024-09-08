@@ -143,7 +143,7 @@ def invalidate_cache(
         raise
 
 
-def read_csv(filename: str, date_columns: list[str] = []) -> pd.DataFrame:
+def read_csv(filename: str, additional_date_columns: list[str] = []) -> pd.DataFrame:
     """Helper function with post-processing steps after pd.read_csv
 
     Parameters
@@ -157,7 +157,7 @@ def read_csv(filename: str, date_columns: list[str] = []) -> pd.DataFrame:
         or have 'Date ' in their column name
     """
     df = pd.read_csv(filename, dtype=str, na_values=["N/K", "NK"])
-    fix_datetimes(df, date_columns)
+    fix_datetimes(df, additional_date_columns)
     return df
 
 

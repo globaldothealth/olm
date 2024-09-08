@@ -15,7 +15,9 @@ from olm.plots import (
 )
 from olm.util import read_csv
 
-DATA = read_csv(Path(__file__).with_name("test_data.csv"), date_columns=["Data_up_to"])
+DATA = read_csv(
+    Path(__file__).with_name("test_data.csv"), additional_date_columns=["Data_up_to"]
+)
 STATUS_DATA = read_csv(Path(__file__).with_name("test_status_data.csv"))
 
 EXPECTED_TIMESERIES_LOCATION_STATUS = """Date_onset_estimated,daily_confirmed,daily_probable,cumulative_confirmed,cumulative_probable,Location_District
