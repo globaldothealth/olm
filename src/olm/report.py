@@ -54,6 +54,7 @@ def make_report(
         "description": outbreak_info["description"],
         "id": outbreak_info["id"],
         "published_date": str(date),
+        "data_url": outbreak_info.get("url", ""),
     }
     df = read_csv(data_url, outbreak_info.get("additional_date_columns", []))
     for plot in outbreak_info["plots"]:
