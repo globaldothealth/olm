@@ -9,7 +9,7 @@ import chevron
 import plotly.io
 
 from .types import OutbreakInfo
-from .util import read_csv, store_s3, invalidate_cache
+from .util import read_csv, store_s3, invalidate_cache, msg_ok
 
 TEMPLATES = Path(__file__).parent / "outbreaks"
 HEADER = (TEMPLATES / "_header.html").read_text()
@@ -76,7 +76,7 @@ def make_report(
 
     report_data = chevron.render(template_text, var)
     Path(output_file).write_text(report_data)
-    print("wrote", output_file)
+    msg_ok("report", "wrote " + output_file)
 
     if output_bucket:
         store_s3(

@@ -41,6 +41,14 @@ def non_null_unique(arr: pd.Series) -> pd.Series:
     return uniq[~pd.isna(uniq)]
 
 
+def msg_ok(module: str, s: str):
+    print(f"\033[0;32m✓ olm[{module}]\t\033[0m {s}")
+
+
+def msg_fail(module: str, s: str):
+    print(f"\033[0;31m✗ olm[{module}]\t\033[0m {s}")
+
+
 def fix_datetimes(df: pd.DataFrame, additional_date_columns: list[str] = []):
     "Convert date fields to datetime in place"
     date_columns = [

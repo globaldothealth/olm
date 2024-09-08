@@ -8,6 +8,7 @@ import requests
 from .report import make_report
 from .lint import lint
 from .outbreaks import OUTBREAKS
+from .util import msg_ok, msg_fail
 
 USAGE = """olm: Office for Linelist Management
 
@@ -27,7 +28,7 @@ lint        lints (checks) an outbreak linelist for errors
 
 
 def abort(msg):
-    print(msg)
+    msg_fail("cli", msg)
     sys.exit(1)
 
 
@@ -64,7 +65,11 @@ def main():
 
     args = parser.parse_args()
     if args.command and args.command != "list" and args.outbreak not in OUTBREAKS:
-        abort("Outbreak not known. Choose from: " + ", ".join(OUTBREAKS))
+        abort(
+            "outbreak not known, choose from: \033[1m"
+            + ", ".join(OUTBREAKS)
+            + "\033[0m"
+        )
 
     match args.command:
         case "list":
@@ -74,15 +79,20 @@ def main():
                 )
         case "get":
             if "url" not in OUTBREAKS[args.outbreak]:
-                abort(f"No data URL found for: {args.outbreak}")
+                abort(f"no data URL found for \033[1m{args.outbreak}\033[0m")
             output_file = f"{args.outbreak}.csv"
             if (
                 res := requests.get(OUTBREAKS[args.outbreak]["url"])
             ).status_code == 200:
                 Path(output_file).write_text(res.text)
-                print("wrote", output_file)
+                msg_ok("get", "wrote " + output_file)
         case "lint":
-            print(lint(args.outbreak, args.data))
+            lint_result = lint(args.outbreak, args.data)
+            if lint_result.ok:
+                msg_ok("lint", "succeeded for " + args.outbreak)
+            else:
+                msg_fail("lint", "failed for " + args.outbreak)
+                print(lint_result)
         case "report":
             make_report(
                 args.outbreak,

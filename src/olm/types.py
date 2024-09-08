@@ -37,15 +37,9 @@ class LintResult:
         return json.dumps(dataclasses.asdict(self), sort_keys=True, indent=2)
 
     def __str__(self) -> str:
-        header = (
-            "✅ Lint succeeded for " if self.ok else "❌ Lint failed for "
-        ) + f"\033[1m{self.outbreak}\033[0m\n"
-        if self.ok:
-            return header
-        errors = "\n".join(
+        return "\n".join(
             f"- ID {e.id}: {e.message}, found={e.value}" for e in self.errors
         )
-        return header + errors
 
     def as_html(self) -> str:
         pass
