@@ -63,7 +63,7 @@ def main():
     )
 
     args = parser.parse_args()
-    if args.outbreak is not None and args.outbreak not in OUTBREAKS:
+    if args.command and args.command != "list" and args.outbreak not in OUTBREAKS:
         abort("Outbreak not known. Choose from: " + ", ".join(OUTBREAKS))
 
     match args.command:
