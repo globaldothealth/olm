@@ -1,7 +1,6 @@
 version = 1
 requires-python = ">=3.11"
 resolution-markers = [
-    "python_full_version < '0'",
     "python_full_version < '3.12'",
     "python_full_version >= '3.12'",
 ]
@@ -141,6 +140,15 @@ toml = [
 ]
 
 [[package]]
+name = "fastjsonschema"
+version = "2.20.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/03/3f/3ad5e7be13b4b8b55f4477141885ab2364f65d5f6ad5f7a9daffd634d066/fastjsonschema-2.20.0.tar.gz", hash = "sha256:3d48fc5300ee96f5d116f10fe6f28d938e6008f59a6a025c2649475b87f76a23", size = 373056 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/6d/ca/086311cdfc017ec964b2436fe0c98c1f4efcb7e4c328956a22456e497655/fastjsonschema-2.20.0-py3-none-any.whl", hash = "sha256:5875f0b0fa7a0043a91e93a9b8f793bcbbba9691e7fd83dca95c28ba26d21f0a", size = 23543 },
+]
+
+[[package]]
 name = "h11"
 version = "0.14.0"
 source = { registry = "https://pypi.org/simple" }
@@ -228,6 +236,7 @@ source = { editable = "." }
 dependencies = [
     { name = "boto3" },
     { name = "chevron" },
+    { name = "fastjsonschema" },
     { name = "pandas" },
     { name = "plotly" },
     { name = "python-dateutil" },
@@ -244,6 +253,7 @@ dev = [
 requires-dist = [
     { name = "boto3", specifier = ">=1.35.8" },
     { name = "chevron", specifier = ">=0.14.0" },
+    { name = "fastjsonschema", specifier = ">=2.20.0" },
     { name = "pandas", specifier = ">=2.2.2" },
     { name = "plotly", specifier = ">=5.23.0" },
     { name = "python-dateutil", specifier = ">=2.9.0.post0" },
