@@ -2,6 +2,7 @@
 Outbreak configurations
 """
 
+from typing import TypedDict, Callable, Any, NotRequired
 import pandas as pd
 from ..plots import (
     get_counts,
@@ -15,6 +16,15 @@ from ..plots import (
 )
 from ..util import read_csv
 from ..sources import source_databutton
+
+
+class OutbreakInfo(TypedDict):
+    id: str
+    description: str
+    plots: list[tuple[str, Callable[..., Any], dict[str, Any]]]
+    additional_date_columns: NotRequired[list[str]]
+    url: NotRequired[str]
+
 
 outbreak_marburg = [
     ("data", get_counts, {"date_col": "Data_up_to"}),
@@ -106,14 +116,16 @@ outbreak_mpox_2024 = [
     ("figure/age_gender", plot_age_gender),
 ]
 
-OUTBREAKS = {
+OUTBREAKS: dict[str, OutbreakInfo] = {
     "marburg": {
-        "description": "Marburg 2023 [GHL2023.D11.1D60.1]",
+        "id": "GHL2023.D11.1D60.1",
+        "description": "Marburg 2023",
         "plots": outbreak_marburg,
         "additional_date_columns": ["Data_up_to"],
     },
     "mpox-2024": {
-        "description": "Mpox 2024 [GHL2024.D11.1E71]",
+        "id": "GHL2024.D11.1E71",
+        "description": "Mpox 2024",
         "plots": outbreak_mpox_2024,
         "url": "https://mpox-2024.s3.eu-central-1.amazonaws.com/latest.csv",
     },
