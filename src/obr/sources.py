@@ -13,7 +13,11 @@ DOWNLOADS = Path(os.getenv("OBT_DOWNLOAD_FOLDER", Path.home() / "Downloads"))
 
 
 def source_databutton(
-    _, link: str, button_text: str, download_folder: Path = DOWNLOADS
+    _,
+    link: str,
+    button_text: str,
+    download_folder: Path = DOWNLOADS,
+    cleanup: bool = True,
 ) -> pd.DataFrame:
     options = webdriver.FirefoxOptions()
     options.headless = True
@@ -27,8 +31,6 @@ def source_databutton(
             ]
         ):
             raise ValueError(f"No button found with {text}")
-        else:
-            print(text)
         return elems[0]
 
     find_button(button_text).click()
@@ -40,4 +42,7 @@ def source_databutton(
         raise ValueError(
             "source_databutton(): Only CSV files are supported at the moment"
         )
-    return pd.read_csv(file)
+    df = pd.read_csv(file)
+    if cleanup:
+        os.remove(file)
+    return df
