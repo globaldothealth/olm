@@ -2,6 +2,11 @@
 Outbreak configurations
 """
 
+import json
+from pathlib import Path
+from typing import Any
+
+import requests
 import pandas as pd
 from ..plots import (
     get_counts,
@@ -120,11 +125,24 @@ OUTBREAKS: dict[str, OutbreakInfo] = {
         "description": "Mpox 2024",
         "plots": outbreak_mpox_2024,
         "url": "https://mpox-2024.s3.eu-central-1.amazonaws.com/latest.csv",
+        "schema": "GHL2024.D11.1E71.schema.json",
     },
 }
 
 
-def read_outbreak(outbreak: str, data_url: str | None = None) -> pd.DataFrame:
+def read_schema(outbreak_or_schema: str | Path) -> dict[str, Any]:
+    "Reads schema from outbreak"
+    if isinstance(outbreak_or_schema, Path):
+        return json.loads(outbreak_or_schema.read_text())
+    schema = OUTBREAKS[outbreak_or_schema]["schema"]
+    if schema.startswith("http"):
+        if (res := requests.get(schema)).status_code == 200:
+            return res.json()
+
+
+def read_outbreak(
+    outbreak: str, data_url: str | None = None, convert_dates: bool = True
+) -> pd.DataFrame:
     assert outbreak in OUTBREAKS, f"Outbreak {outbreak} not found"
     if data_url is None and OUTBREAKS[outbreak].get("url") is None:
         raise ValueError(
@@ -133,6 +151,7 @@ def read_outbreak(outbreak: str, data_url: str | None = None) -> pd.DataFrame:
     return read_csv(
         data_url or OUTBREAKS[outbreak]["url"],
         additional_date_columns=OUTBREAKS[outbreak].get("additional_date_columns", []),
+        convert_dates=convert_dates,
     )
 
 

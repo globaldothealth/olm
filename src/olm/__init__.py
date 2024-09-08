@@ -1,9 +1,12 @@
 import sys
 import argparse
 import webbrowser
-import urllib
 from pathlib import Path
+
+import requests
+
 from .report import make_report
+from .lint import lint
 from .outbreaks import OUTBREAKS
 
 USAGE = """olm: Office for Linelist Management
@@ -35,10 +38,18 @@ def main():
 
     subparsers = parser.add_subparsers(dest="command")
 
-    report_parser = subparsers.add_parser("report", help="Generate briefing report")
+    lint_parser = subparsers.add_parser(
+        "lint", help="Lint outbreak data according to schema"
+    )
+    lint_parser.add_argument("outbreak", help="Outbreak name")
+    lint_parser.add_argument("--data", help="Data URL")
+
     get_parser = subparsers.add_parser("get", help="Get data for outbreak")
     get_parser.add_argument("outbreak", help="Outbreak name")
+
     _ = subparsers.add_parser("list", help="List outbreaks managed by olm")
+
+    report_parser = subparsers.add_parser("report", help="Generate briefing report")
     report_parser.add_argument("outbreak", help="Outbreak name")
     report_parser.add_argument("--data", help="Data URL")
     report_parser.add_argument(
@@ -52,6 +63,9 @@ def main():
     )
 
     args = parser.parse_args()
+    if args.outbreak is not None and args.outbreak not in OUTBREAKS:
+        abort("Outbreak not known. Choose from: " + ", ".join(OUTBREAKS))
+
     match args.command:
         case "list":
             for outbreak in OUTBREAKS:
@@ -59,17 +73,17 @@ def main():
                     f"\033[1m{outbreak:12s} \033[0m{OUTBREAKS[outbreak]['description']} [{OUTBREAKS[outbreak]['id']}]"
                 )
         case "get":
-            if args.outbreak not in OUTBREAKS:
-                abort("Outbreak not known. Choose from: " + ", ".join(OUTBREAKS))
             if "url" not in OUTBREAKS[args.outbreak]:
                 abort(f"No data URL found for: {args.outbreak}")
             output_file = f"{args.outbreak}.csv"
-            with urllib.request.urlopen(OUTBREAKS[args.outbreak]["url"]) as f:
-                Path(output_file).write_bytes(f.read())
+            if (
+                res := requests.get(OUTBREAKS[args.outbreak]["url"])
+            ).status_code == 200:
+                Path(output_file).write_text(res.text)
                 print("wrote", output_file)
+        case "lint":
+            lint(args.outbreak, args.data)
         case "report":
-            if args.outbreak not in OUTBREAKS:
-                abort(f"Outbreak not supported: {args.outbreak}")
             make_report(
                 args.outbreak,
                 args.data or OUTBREAKS[args.outbreak]["url"],

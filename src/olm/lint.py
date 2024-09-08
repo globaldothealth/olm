@@ -2,44 +2,28 @@
 olm lint and quality control module
 """
 
-import json
-import dataclasses
-from typing import NamedTuple
+from pathlib import Path
 
+import pandas as pd
 
-from .outbreaks import read_outbreak
+from .types import LintResult
+from .outbreaks import read_outbreak, read_schema
 
-
-class RowError(NamedTuple):
-    id: str
-    column: str
-    value: str
-    message: str
-
-
-@dataclasses.dataclass
-class LintResult:
-    outbreak: str
-    schema: str
-    filehash: str
-    ok: bool
-    errors: list[RowError]
-
-    def as_json(self) -> str:
-        return json.dumps(dataclasses.asdict(self), sort_keys=True, indent=2)
-
-    def as_html(self) -> str:
-        pass
-
-    def as_slack(self) -> str:
-        pass
+import fastjsonschema
 
 
 def lint(outbreak: str, file: str | None = None) -> LintResult:
     errors = []
-    schema = None
-    df = read_outbreak(outbreak, file)
+    # do not convert dates as fastjsonschema will check date string representation
+    df = read_outbreak(outbreak, file, convert_dates=False)
+    schema = read_schema(Path("GHL2024.D11.1E71.schema.json"))
+    validator = fastjsonschema.compile(schema)
+
     for row in df.to_dict("records"):
-        # lint each row
-        pass
+        id = row["ID"]
+        nrow = {k: v for k, v in row.items() if pd.notnull(v)}
+        try:
+            validator(nrow)
+        except fastjsonschema.JsonSchemaValueException as e:
+            print(f"ID {id}: {e}, found: {nrow[e.path[1]]}")
     return LintResult(outbreak, schema, "", len(errors) == 0, errors)
