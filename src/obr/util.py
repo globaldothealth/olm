@@ -215,6 +215,7 @@ def build(
 
     report_data = render(template, var)
     Path(output_file).write_text(report_data)
+    print("wrote", output_file)
 
     if output_bucket:
         store_s3(
