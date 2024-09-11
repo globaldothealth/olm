@@ -1,10 +1,14 @@
 import sys
 import argparse
 import webbrowser
-import urllib
 from pathlib import Path
+
+import requests
+
 from .report import make_report
+from .lint import lint
 from .outbreaks import OUTBREAKS
+from .util import msg_ok, msg_fail
 
 USAGE = """olm: Office for Linelist Management
 
@@ -24,7 +28,7 @@ lint        lints (checks) an outbreak linelist for errors
 
 
 def abort(msg):
-    print(msg)
+    msg_fail("cli", msg)
     sys.exit(1)
 
 
@@ -35,10 +39,20 @@ def main():
 
     subparsers = parser.add_subparsers(dest="command")
 
-    report_parser = subparsers.add_parser("report", help="Generate briefing report")
+    lint_parser = subparsers.add_parser(
+        "lint", help="Lint outbreak data according to schema"
+    )
+    lint_parser.add_argument("outbreak", help="Outbreak name")
+    lint_parser.add_argument("--data", help="Data URL")
+    lint_parser.add_argument("--schema", help="Data schema path or URL")
+    lint_parser.add_argument("--ignore", help="Ignore fields, comma-separated")
+
     get_parser = subparsers.add_parser("get", help="Get data for outbreak")
     get_parser.add_argument("outbreak", help="Outbreak name")
+
     _ = subparsers.add_parser("list", help="List outbreaks managed by olm")
+
+    report_parser = subparsers.add_parser("report", help="Generate briefing report")
     report_parser.add_argument("outbreak", help="Outbreak name")
     report_parser.add_argument("--data", help="Data URL")
     report_parser.add_argument(
@@ -52,6 +66,14 @@ def main():
     )
 
     args = parser.parse_args()
+    if args.command and args.command != "list" and args.outbreak not in OUTBREAKS:
+        abort(
+            "outbreak not known, choose from: \033[1m"
+            + ", ".join(OUTBREAKS)
+            + "\033[0m"
+        )
+    bold_outbreak = f"\033[1m{args.outbreak}\033[0m"
+
     match args.command:
         case "list":
             for outbreak in OUTBREAKS:
@@ -59,17 +81,24 @@ def main():
                     f"\033[1m{outbreak:12s} \033[0m{OUTBREAKS[outbreak]['description']} [{OUTBREAKS[outbreak]['id']}]"
                 )
         case "get":
-            if args.outbreak not in OUTBREAKS:
-                abort("Outbreak not known. Choose from: " + ", ".join(OUTBREAKS))
             if "url" not in OUTBREAKS[args.outbreak]:
-                abort(f"No data URL found for: {args.outbreak}")
+                abort(f"no data URL found for {bold_outbreak}")
             output_file = f"{args.outbreak}.csv"
-            with urllib.request.urlopen(OUTBREAKS[args.outbreak]["url"]) as f:
-                Path(output_file).write_bytes(f.read())
-                print("wrote", output_file)
+            if (
+                res := requests.get(OUTBREAKS[args.outbreak]["url"])
+            ).status_code == 200:
+                Path(output_file).write_text(res.text)
+                msg_ok("get", "wrote " + output_file)
+        case "lint":
+            ignore_keys = args.ignore.split(",") if args.ignore is not None else []
+            if (
+                lint_result := lint(args.outbreak, args.data, args.schema, ignore_keys)
+            ).ok:
+                msg_ok("lint", "succeeded for " + bold_outbreak)
+            else:
+                msg_fail("lint", "failed for " + bold_outbreak)
+                print(lint_result)
         case "report":
-            if args.outbreak not in OUTBREAKS:
-                abort(f"Outbreak not supported: {args.outbreak}")
             make_report(
                 args.outbreak,
                 args.data or OUTBREAKS[args.outbreak]["url"],

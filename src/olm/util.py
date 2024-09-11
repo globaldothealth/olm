@@ -5,9 +5,9 @@ Briefing report generator for Marburg 2023 outbreak
 import re
 import logging
 import datetime
+from typing import Callable
 
 import boto3
-
 import pandas as pd
 
 
@@ -40,6 +40,30 @@ UPPER_LIMIT_AGE = 120
 def non_null_unique(arr: pd.Series) -> pd.Series:
     uniq = arr.unique()
     return uniq[~pd.isna(uniq)]
+
+
+def msg_ok(module: str, s: str):
+    print(f"\033[0;32m✓ olm[{module}]\t\033[0m {s}")
+
+
+def msg_fail(module: str, s: str):
+    print(f"\033[0;31m✗ olm[{module}]\t\033[0m {s}")
+
+
+def rename_columns(columns: dict[str, str]) -> Callable[[pd.DataFrame], pd.DataFrame]:
+    def rename_table(df: pd.DataFrame) -> pd.DataFrame:
+        return df.rename(columns=columns)
+
+    return rename_table
+
+
+def sort_values(
+    by: list[str], ascending: bool
+) -> Callable[[pd.DataFrame], pd.DataFrame]:
+    def sort_table(df: pd.DataFrame) -> pd.DataFrame:
+        return df.sort_values(by=by, ascending=ascending)
+
+    return sort_table
 
 
 def fix_datetimes(df: pd.DataFrame, additional_date_columns: list[str] = []):
@@ -129,7 +153,9 @@ def invalidate_cache(
         raise
 
 
-def read_csv(filename: str, additional_date_columns: list[str] = []) -> pd.DataFrame:
+def read_csv(
+    filename: str, additional_date_columns: list[str] = [], convert_dates: bool = True
+) -> pd.DataFrame:
     """Helper function with post-processing steps after pd.read_csv
 
     Parameters
@@ -143,5 +169,6 @@ def read_csv(filename: str, additional_date_columns: list[str] = []) -> pd.DataF
         or have 'Date ' in their column name
     """
     df = pd.read_csv(filename, dtype=str, na_values=["N/K", "NK"])
-    fix_datetimes(df, additional_date_columns)
+    if convert_dates:
+        fix_datetimes(df, additional_date_columns)
     return df

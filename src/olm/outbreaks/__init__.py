@@ -2,6 +2,11 @@
 Outbreak configurations
 """
 
+import json
+from pathlib import Path
+from typing import Any
+
+import requests
 import pandas as pd
 from ..plots import (
     get_counts,
@@ -14,7 +19,7 @@ from ..plots import (
     plot_delay_distribution,
 )
 from ..types import OutbreakInfo
-from ..util import read_csv
+from ..util import read_csv, rename_columns, sort_values
 from ..sources import source_databutton
 
 
@@ -66,6 +71,9 @@ outbreak_mpox_2024 = [
             "link": "https://worldhealthorg.shinyapps.io/mpx_global/",
             "button_text": "Download MPXV clades",
         },
+        rename_columns(
+            {"country": "Country", "iso3": "ISO3", "clade_status": "Clade status"}
+        ),
     ),
     (
         "table/aggregate",
@@ -74,6 +82,14 @@ outbreak_mpox_2024 = [
             "country_col": "Location_Admin0",
             "columns": [("Case_status", "confirmed"), ("Outcome", "death")],
         },
+        rename_columns(
+            {
+                "Location_Admin0": "Country",
+                "confirmed": "Confirmed cases",
+                "death": "Confirmed deaths",
+            }
+        ),
+        sort_values("Confirmed cases", ascending=False),
     ),
     (
         "data",
@@ -114,17 +130,34 @@ OUTBREAKS: dict[str, OutbreakInfo] = {
         "description": "Marburg 2023 Equatorial Guinea",
         "plots": outbreak_marburg,
         "additional_date_columns": ["Data_up_to"],
+        "schema": "https://raw.githubusercontent.com/globaldothealth/outbreak-schema/main/outbreak.schema.json",
     },
     "mpox-2024": {
         "id": "GHL2024.D11.1E71",
         "description": "Mpox 2024",
         "plots": outbreak_mpox_2024,
         "url": "https://mpox-2024.s3.eu-central-1.amazonaws.com/latest.csv",
+        "schema": "https://raw.githubusercontent.com/globaldothealth/outbreak-schema/main/GHL2024.D11.1E71.schema.json",
     },
 }
 
 
-def read_outbreak(outbreak: str, data_url: str | None = None) -> pd.DataFrame:
+def get_schema_url(outbreak: str) -> str | None:
+    return OUTBREAKS[outbreak].get("schema")
+
+
+def read_schema(schema: str | Path) -> dict[str, Any]:
+    "Reads schema from outbreak"
+    if isinstance(schema, str) and schema.startswith("http"):
+        if (res := requests.get(schema)).status_code == 200:
+            return res.json()
+    else:
+        return json.loads(Path(schema).read_text())
+
+
+def read_outbreak(
+    outbreak: str, data_url: str | None = None, convert_dates: bool = True
+) -> pd.DataFrame:
     assert outbreak in OUTBREAKS, f"Outbreak {outbreak} not found"
     if data_url is None and OUTBREAKS[outbreak].get("url") is None:
         raise ValueError(
@@ -133,6 +166,7 @@ def read_outbreak(outbreak: str, data_url: str | None = None) -> pd.DataFrame:
     return read_csv(
         data_url or OUTBREAKS[outbreak]["url"],
         additional_date_columns=OUTBREAKS[outbreak].get("additional_date_columns", []),
+        convert_dates=convert_dates,
     )
 
 

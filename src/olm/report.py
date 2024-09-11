@@ -9,7 +9,7 @@ import chevron
 import plotly.io
 
 from .types import OutbreakInfo
-from .util import read_csv, store_s3, invalidate_cache
+from .util import read_csv, store_s3, invalidate_cache, msg_ok
 
 TEMPLATES = Path(__file__).parent / "outbreaks"
 HEADER = (TEMPLATES / "_header.html").read_text()
@@ -64,9 +64,10 @@ def make_report(
             case "data":
                 var.update(plot[1](df, **kwargs))
             case "table":
-                var[plot[0].removeprefix("table/")] = plot[1](df, **kwargs).to_html(
-                    index=False
-                )
+                table_data = plot[1](df, **kwargs)
+                for post_processor in plot[3:]:
+                    table_data = post_processor(table_data)
+                var[plot[0].removeprefix("table/")] = table_data.to_html(index=False)
             case "figure":
                 var.update(
                     render_figure(
@@ -76,7 +77,7 @@ def make_report(
 
     report_data = chevron.render(template_text, var)
     Path(output_file).write_text(report_data)
-    print("wrote", output_file)
+    msg_ok("report", "wrote " + output_file)
 
     if output_bucket:
         store_s3(

@@ -11,6 +11,8 @@ dependencies = [
     "plotly>=5.23.0",
     "boto3>=1.35.8",
     "selenium>=4.24.0",
+    "fastjsonschema>=2.20.0",
+    "requests>=2.32.3",
 ]
 scripts = { olm = "olm:main" }
 
