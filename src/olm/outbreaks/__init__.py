@@ -19,7 +19,7 @@ from ..plots import (
     plot_delay_distribution,
 )
 from ..types import OutbreakInfo
-from ..util import read_csv
+from ..util import read_csv, rename_columns, sort_values
 from ..sources import source_databutton
 
 
@@ -71,6 +71,9 @@ outbreak_mpox_2024 = [
             "link": "https://worldhealthorg.shinyapps.io/mpx_global/",
             "button_text": "Download MPXV clades",
         },
+        rename_columns(
+            {"country": "Country", "iso3": "ISO3", "clade_status": "Clade status"}
+        ),
     ),
     (
         "table/aggregate",
@@ -79,6 +82,14 @@ outbreak_mpox_2024 = [
             "country_col": "Location_Admin0",
             "columns": [("Case_status", "confirmed"), ("Outcome", "death")],
         },
+        rename_columns(
+            {
+                "Location_Admin0": "Country",
+                "confirmed": "Confirmed cases",
+                "death": "Confirmed deaths",
+            }
+        ),
+        sort_values("Confirmed cases", ascending=False),
     ),
     (
         "data",
@@ -119,13 +130,14 @@ OUTBREAKS: dict[str, OutbreakInfo] = {
         "description": "Marburg 2023 Equatorial Guinea",
         "plots": outbreak_marburg,
         "additional_date_columns": ["Data_up_to"],
+        "schema": "https://raw.githubusercontent.com/globaldothealth/outbreak-schema/main/outbreak.schema.json",
     },
     "mpox-2024": {
         "id": "GHL2024.D11.1E71",
         "description": "Mpox 2024",
         "plots": outbreak_mpox_2024,
         "url": "https://mpox-2024.s3.eu-central-1.amazonaws.com/latest.csv",
-        "schema": "GHL2024.D11.1E71.schema.json",
+        "schema": "https://raw.githubusercontent.com/globaldothealth/outbreak-schema/main/GHL2024.D11.1E71.schema.json",
     },
 }
 

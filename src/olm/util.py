@@ -5,6 +5,7 @@ Briefing report generator for Marburg 2023 outbreak
 import re
 import logging
 import datetime
+from typing import Callable
 
 import boto3
 import pandas as pd
@@ -47,6 +48,22 @@ def msg_ok(module: str, s: str):
 
 def msg_fail(module: str, s: str):
     print(f"\033[0;31m✗ olm[{module}]\t\033[0m {s}")
+
+
+def rename_columns(columns: dict[str, str]) -> Callable[[pd.DataFrame], pd.DataFrame]:
+    def rename_table(df: pd.DataFrame) -> pd.DataFrame:
+        return df.rename(columns=columns)
+
+    return rename_table
+
+
+def sort_values(
+    by: list[str], ascending: bool
+) -> Callable[[pd.DataFrame], pd.DataFrame]:
+    def sort_table(df: pd.DataFrame) -> pd.DataFrame:
+        return df.sort_values(by=by, ascending=ascending)
+
+    return sort_table
 
 
 def fix_datetimes(df: pd.DataFrame, additional_date_columns: list[str] = []):

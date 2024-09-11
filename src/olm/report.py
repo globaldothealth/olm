@@ -64,9 +64,10 @@ def make_report(
             case "data":
                 var.update(plot[1](df, **kwargs))
             case "table":
-                var[plot[0].removeprefix("table/")] = plot[1](df, **kwargs).to_html(
-                    index=False
-                )
+                table_data = plot[1](df, **kwargs)
+                for post_processor in plot[3:]:
+                    table_data = post_processor(table_data)
+                var[plot[0].removeprefix("table/")] = table_data.to_html(index=False)
             case "figure":
                 var.update(
                     render_figure(
