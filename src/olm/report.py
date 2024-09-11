@@ -51,6 +51,7 @@ def make_report(
         raise FileNotFoundError(f"Template for outbreak not found at: {template}")
     template_text = HEADER + template.read_text() + FOOTER
     var = {
+        "name": outbreak_name,
         "description": outbreak_info["description"],
         "id": outbreak_info["id"],
         "published_date": str(date),

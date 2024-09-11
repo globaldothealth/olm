@@ -153,6 +153,14 @@ p.print {
   display: none;
 }
 
+div#data-citation p {
+  font-size: 85%;
+}
+p.citation-text {
+  border-left: 2px solid #0e7569;
+  padding: 0.1rem 0.5rem;
+  width: 90%;
+}
 @media print {
   figure.mainfigure {
     page-break-before: always;
