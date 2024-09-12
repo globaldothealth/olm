@@ -18,9 +18,34 @@ from ..plots import (
     plot_age_gender,
     plot_delay_distribution,
 )
+from ..util import rename_columns, read_csv
 from ..types import OutbreakInfo
-from ..util import read_csv, rename_columns, sort_values
-from ..sources import source_databutton
+from ..sources import source_databutton, source_google_sheet
+
+
+def mpox_2024_aggregate(linelist: pd.DataFrame) -> pd.DataFrame:
+    agg = (
+        get_aggregate(
+            linelist,
+            "Location_Admin0",
+            [("Case_status", "confirmed"), ("Outcome", "death")],
+        )
+        .rename(
+            columns={
+                "Location_Admin0": "Country",
+                "confirmed": "Confirmed cases",
+                "death": "Confirmed deaths",
+            }
+        )
+        .sort_values("Confirmed cases", ascending=False)
+    ).set_index("Country")
+    death_data = source_google_sheet(None, "index", 2)  # third sheet is deaths data
+    death_data = death_data.set_index(death_data.columns[0])
+
+    # Retrieve death data for DRC, which is the last column
+    drc_deaths = int(death_data.loc["Democratic Republic of the Congo"].iloc[-1])
+    agg.loc["Democratic Republic of the Congo", "Confirmed deaths"] = drc_deaths
+    return agg.reset_index()
 
 
 outbreak_marburg = [
@@ -75,22 +100,7 @@ outbreak_mpox_2024 = [
             {"country": "Country", "iso3": "ISO3", "clade_status": "Clade status"}
         ),
     ),
-    (
-        "table/aggregate",
-        get_aggregate,
-        {
-            "country_col": "Location_Admin0",
-            "columns": [("Case_status", "confirmed"), ("Outcome", "death")],
-        },
-        rename_columns(
-            {
-                "Location_Admin0": "Country",
-                "confirmed": "Confirmed cases",
-                "death": "Confirmed deaths",
-            }
-        ),
-        sort_values("Confirmed cases", ascending=False),
-    ),
+    ("table/aggregate", mpox_2024_aggregate),
     (
         "data",
         get_countries_with_status,
