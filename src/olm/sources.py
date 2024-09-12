@@ -5,11 +5,27 @@ Custom sources of data
 import os
 from pathlib import Path
 
+import pygsheets
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 import pandas as pd
 
 DOWNLOADS = Path(os.getenv("OBT_DOWNLOAD_FOLDER", Path.home() / "Downloads"))
+
+
+def source_google_sheet(_, ws_property: str, ws_value: str | int) -> pd.DataFrame:
+    "A Google sheet source"
+    if (document_key := os.getenv("OLM_SRC_GOOGLE_SHEET_ID")) is None:
+        raise ValueError("No Google sheet specified in OLM_SRC_GOOGLE_SHEET_ID")
+    if os.getenv("OLM_SRC_GOOGLE_SHEET_CREDENTIALS") is None:
+        raise ValueError(
+            "source_google_sheet requires credentials set in OLM_SRC_GOOGLE_SHEET_CREDENTIALS"
+        )
+    client = pygsheets.authorize(
+        service_account_env_var="OLM_SRC_GOOGLE_SHEET_CREDENTIALS"
+    )
+    spreadsheet = client.open_by_key(document_key)
+    return spreadsheet.worksheet(ws_property, ws_value).get_as_df(numerize=False)
 
 
 def source_databutton(
