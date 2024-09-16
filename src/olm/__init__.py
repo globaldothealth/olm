@@ -98,6 +98,7 @@ def main():
             else:
                 msg_fail("lint", "failed for " + bold_outbreak)
                 print(lint_result)
+                sys.exit(2)
         case "report":
             make_report(
                 args.outbreak,
