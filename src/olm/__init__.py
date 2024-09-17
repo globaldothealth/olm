@@ -21,8 +21,8 @@ against a provided schema.
 olm is organised into subcommands:
 
   [get]         saves linelist data to disk
-  [list]        lists G.h outbreaks that olm supports
   [lint]        lints (checks) an outbreak linelist for errors
+  [list]        lists G.h outbreaks that olm supports
   [report]      generates briefing report for an outbreak
 """
 
