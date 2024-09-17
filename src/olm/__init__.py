@@ -8,11 +8,11 @@ import requests
 from .report import make_report
 from .lint import lint
 from .outbreaks import OUTBREAKS
-from .util import msg_ok, msg_fail
+from .util import msg_ok, msg_fail, bold_brackets
 
-USAGE = """olm: Office for Linelist Management
+USAGE = """[olm]: [O]ffice for [L]inelist [M]anagement
 
-olm is a tool to operate on linelists provided from Global.health (G.h).
+[olm] is a tool to operate on linelists provided from Global.health (G.h).
 Linelists are epidemiological datasets with information about a disease
 outbreak organised into one row per case. Currently it supports
 generating briefing reports, fetching linelists and checking linelists
@@ -20,10 +20,10 @@ against a provided schema.
 
 olm is organised into subcommands:
 
-list        lists G.h outbreaks that olm supports
-get         saves linelist data to disk
-report      generates briefing report for an outbreak
-lint        lints (checks) an outbreak linelist for errors
+  [get]         saves linelist data to disk
+  [list]        lists G.h outbreaks that olm supports
+  [lint]        lints (checks) an outbreak linelist for errors
+  [report]      generates briefing report for an outbreak
 """
 
 
@@ -72,7 +72,10 @@ def main():
             + ", ".join(OUTBREAKS)
             + "\033[0m"
         )
-    bold_outbreak = f"\033[1m{args.outbreak}\033[0m"
+    try:
+        bold_outbreak = f"\033[1m{args.outbreak}\033[0m"
+    except AttributeError:
+        bold_outbreak = None
 
     match args.command:
         case "list":
@@ -110,7 +113,7 @@ def main():
             if args.open and (Path(args.outbreak + ".html")).exists():
                 webbrowser.open("file://" + str(Path.cwd() / (args.outbreak + ".html")))
         case None:
-            print(USAGE)
+            print(bold_brackets(USAGE))
 
 
 if __name__ == "__main__":

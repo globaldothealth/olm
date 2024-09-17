@@ -57,6 +57,11 @@ def rename_columns(columns: dict[str, str]) -> Callable[[pd.DataFrame], pd.DataF
     return rename_table
 
 
+def bold_brackets(s: str) -> str:
+    """Given a text with brackets such as [this], renders it in bold font"""
+    return s.replace("[", "\033[1m").replace("]", "\033[0m")
+
+
 def sort_values(
     by: list[str], ascending: bool
 ) -> Callable[[pd.DataFrame], pd.DataFrame]:
