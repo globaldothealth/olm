@@ -5,8 +5,9 @@ Briefing report generator for Marburg 2023 outbreak
 import re
 import logging
 import datetime
-from typing import Callable
+from typing import Callable, Any
 
+import yaml
 import boto3
 import pandas as pd
 
@@ -37,6 +38,14 @@ SENIOR_AGE = 60
 UPPER_LIMIT_AGE = 120
 
 
+def read_yaml(file: str) -> dict[str, Any]:
+    with open(file) as stream:
+        try:
+            return yaml.safe_load(stream)
+        except yaml.YAMLError as exc:
+            print(exc)
+
+
 def non_null_unique(arr: pd.Series) -> pd.Series:
     uniq = arr.unique()
     return uniq[~pd.isna(uniq)]
@@ -50,11 +59,8 @@ def msg_fail(module: str, s: str):
     print(f"\033[0;31m✗ olm[{module}]\t\033[0m {s}")
 
 
-def rename_columns(columns: dict[str, str]) -> Callable[[pd.DataFrame], pd.DataFrame]:
-    def rename_table(df: pd.DataFrame) -> pd.DataFrame:
-        return df.rename(columns=columns)
-
-    return rename_table
+def rename_columns(df: pd.DataFrame, columns: dict[str, str]) -> pd.DataFrame:
+    return df.rename(columns=columns)
 
 
 def bold_brackets(s: str) -> str:

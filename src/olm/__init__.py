@@ -5,10 +5,8 @@ from pathlib import Path
 
 import requests
 
-from .report import make_report
-from .lint import lint
-from .outbreaks import OUTBREAKS
 from .util import msg_ok, msg_fail, bold_brackets
+from .outbreaks import OUTBREAKS, OUTBREAKS_PATH, Outbreak
 
 USAGE = """[olm]: [O]ffice for [L]inelist [M]anagement
 
@@ -80,35 +78,32 @@ def main():
     match args.command:
         case "list":
             for outbreak in OUTBREAKS:
+                outbreak = Outbreak(OUTBREAKS_PATH / f"{outbreak}.yml")
                 print(
-                    f"\033[1m{outbreak:12s} \033[0m{OUTBREAKS[outbreak]['description']} [{OUTBREAKS[outbreak]['id']}]"
+                    f"\033[1m{outbreak:12s} \033[0m{outbreak.description} [{outbreak.id}]"
                 )
         case "get":
-            if "url" not in OUTBREAKS[args.outbreak]:
+            outbreak = Outbreak(OUTBREAKS_PATH / f"{args.outbreak}.yml")
+            if outbreak.url is None:
                 abort(f"no data URL found for {bold_outbreak}")
             output_file = f"{args.outbreak}.csv"
-            if (
-                res := requests.get(OUTBREAKS[args.outbreak]["url"])
-            ).status_code == 200:
+            if (res := requests.get(outbreak.url)).status_code == 200:
                 Path(output_file).write_text(res.text)
                 msg_ok("get", "wrote " + output_file)
         case "lint":
+            outbreak = Outbreak(OUTBREAKS_PATH / f"{args.outbreak}.yml", args.data)
             ignore_keys = args.ignore.split(",") if args.ignore is not None else []
-            if (
-                lint_result := lint(args.outbreak, args.data, args.schema, ignore_keys)
-            ).ok:
+            if (lint_result := outbreak.lint(ignore_keys)).ok:
                 msg_ok("lint", "succeeded for " + bold_outbreak)
             else:
                 msg_fail("lint", "failed for " + bold_outbreak)
                 print(lint_result)
                 sys.exit(2)
         case "report":
-            make_report(
-                args.outbreak,
-                args.data or OUTBREAKS[args.outbreak]["url"],
-                OUTBREAKS[args.outbreak],
-                output_bucket=args.bucket,
-                cloudfront_distribution=args.cloudfront,
+            outbreak = Outbreak(OUTBREAKS_PATH / f"{args.outbreak}.yml", args.data)
+            outbreak.make_report(
+                args.bucket,
+                args.cloudfront,
             )
             if args.open and (Path(args.outbreak + ".html")).exists():
                 webbrowser.open("file://" + str(Path.cwd() / (args.outbreak + ".html")))
