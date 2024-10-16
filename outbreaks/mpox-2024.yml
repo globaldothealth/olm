@@ -1,0 +1,33 @@
+name: mpox-2024
+id: GHL2024.D11.1E71
+description: Mpox 2024
+url: https://mpox-2024.s3.eu-central-1.amazonaws.com/latest.csv
+schema: https://raw.githubusercontent.com/globaldothealth/outbreak-schema/main/GHL2024.D11.1E71.schema.json
+plots:
+  data/get_counts:
+    date_col: Date_entry
+  figure/age_gender:
+  table/clades/source_databutton:
+    link: https://worldhealthorg.shinyapps.io/mpx_global
+    button_text: Download MPXV clades
+    rename_columns:
+      country: Country
+      iso3: ISO3
+      clade_status: Clade status
+  table/aggregate/mpox_2024_aggregate:
+  data/get_countries_with_status:
+    country_col: Location_Admin0
+    statuses: [confirmed, suspected]
+  date/get_countries_with_anyof_statuses:
+    country_col: Location_Admin0
+    statuses: [confirmed, suspected]
+  figure/epicurve_source_report:
+    title: Date of report in primary source
+    date_col: Date_report_source_I
+    groupby_col: Case_status
+    values: [confirmed, suspected]
+  figure/epicurve_confirmed:
+    title: Date of case confirmation
+    date_col: Date_confirmation
+    groupby_col: Case_status
+    values: [confirmed]

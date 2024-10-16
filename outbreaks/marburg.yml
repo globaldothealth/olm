@@ -1,0 +1,24 @@
+name: marburg
+id: GHL2023.D11.1D60.1
+description: Marburg 2023 Equatorial Guinea
+schema: https://raw.githubusercontent.com/globaldothealth/outbreak-schema/main/outbreak.schema.json
+plots:
+  data/get_counts:
+    date_col: Data_up_to
+  figure/epicurve:
+    title: Date of symptom onset
+    date_col: Date_onset_estimated
+    groupby_col: Case_status
+  figure/epicurve_location_status:
+    admin_column: Location_District
+  figure/age_gender:
+  figure/delay_distribution_consult:
+    col: Date_of_first_consult
+    title: Delay to consultation from onset
+    index: A
+    max_delay_days: 20
+  figure/delay_distribution_death:
+    col: Date_death
+    title: Delay to death from onset
+    index: B
+    max_delay_days: 20
