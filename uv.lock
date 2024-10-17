@@ -329,6 +329,15 @@ wheels = [
 ]
 
 [[package]]
+name = "mistune"
+version = "3.0.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/ef/c8/f0173fe3bf85fd891aee2e7bcd8207dfe26c2c683d727c5a6cc3aec7b628/mistune-3.0.2.tar.gz", hash = "sha256:fc7f93ded930c92394ef2cb6f04a8aabab4117a91449e72dcc8dfa646a508be8", size = 90840 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/f0/74/c95adcdf032956d9ef6c89a9b8a5152bf73915f8c633f3e3d88d06bd699c/mistune-3.0.2-py3-none-any.whl", hash = "sha256:71481854c30fdbc938963d3605b72501f5c10a9320ecd412c121c163a1c7d205", size = 47958 },
+]
+
+[[package]]
 name = "numpy"
 version = "2.1.0"
 source = { registry = "https://pypi.org/simple" }
@@ -390,6 +399,7 @@ dependencies = [
     { name = "boto3" },
     { name = "chevron" },
     { name = "fastjsonschema" },
+    { name = "mistune" },
     { name = "pandas" },
     { name = "plotly" },
     { name = "pygsheets" },
@@ -410,6 +420,7 @@ requires-dist = [
     { name = "boto3", specifier = ">=1.35.8" },
     { name = "chevron", specifier = ">=0.14.0" },
     { name = "fastjsonschema", specifier = ">=2.20.0" },
+    { name = "mistune", specifier = ">=3.0.2" },
     { name = "pandas", specifier = ">=2.2.2" },
     { name = "plotly", specifier = ">=5.23.0" },
     { name = "pygsheets", specifier = ">=2.0.6" },
