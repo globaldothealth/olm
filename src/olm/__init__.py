@@ -4,9 +4,12 @@ import webbrowser
 from pathlib import Path
 
 import requests
+from dotenv import load_dotenv
 
 from .util import msg_ok, msg_fail, bold_brackets
 from .outbreaks import OUTBREAKS, OUTBREAKS_PATH, Outbreak
+
+load_dotenv()
 
 USAGE = """[olm]: [O]ffice for [L]inelist [M]anagement
 
