@@ -21,6 +21,14 @@ th {
 p {
   line-height: 1.3;
 }
+ul {
+  margin-left: -1rem;
+}
+li {
+  line-height: 1.3;
+  margin-bottom: 0.2rem;
+}
+
 td {
   border: 0;
   border-bottom: 1px solid silver;
@@ -153,14 +161,22 @@ p.print {
   display: none;
 }
 
+div#data-citation {
+  padding: 0rem 0.8rem;
+  border: 2px solid #0e7569
+}
+
 div#data-citation p {
-  font-size: 85%;
+  font-size: 95%;
 }
 p.citation-text {
-  border-left: 2px solid #0e7569;
   padding: 0.1rem 0.5rem;
   width: 90%;
+  font-size: 100% !important;
+  background-color: #dfe6e3;
+  font-family: monospace;
 }
+
 @media print {
   figure.mainfigure {
     page-break-before: always;
