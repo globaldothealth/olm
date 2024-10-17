@@ -3,11 +3,14 @@ Outbreak configurations
 """
 
 import json
+import warnings
 import datetime
 from pathlib import Path
+from typing import Any
 
 import chevron
 import requests
+import mistune
 import pandas as pd
 from ..plots import (
     get_counts,
@@ -53,6 +56,7 @@ ALLOWED_METHODS = OUTBREAK_SPECIFIC_METHODS + [
 ]
 
 OUTBREAKS_PATH = Path(__file__).parents[3] / "outbreaks"
+INCLUDES = OUTBREAKS_PATH / "includes"
 OUTBREAKS = [f.stem for f in OUTBREAKS_PATH.glob("*.yml")]
 TEMPLATES = OUTBREAKS_PATH / "templates"
 HEADER = (TEMPLATES / "_header.html").read_text()
@@ -74,6 +78,28 @@ def get_plot_method(key: str) -> str | None:
     if key == "figure/age_gender":
         return "plot_age_gender"
     return None
+
+
+def read_includes(outbreak: str, date: datetime.date) -> dict[str, Any]:
+    "Read includes for a particular outbreak"
+    data = {}
+    if not (INCLUDES / outbreak).exists():
+        warnings.warn(
+            f"Includes not present for outbreak: {outbreak}, will return empty dictionary"
+        )
+        return {}
+    markdown_includes = (INCLUDES / outbreak).glob(f"{date}_*.md")
+    html_includes = (INCLUDES / outbreak).glob(f"{date}_*.html")
+    yaml_include = INCLUDES / outbreak / f"{date}.yml"
+    for html_file in html_includes:
+        # if the file is named 2024-01-02_hello.html, then the data in the file
+        # will be returned as the 'hello' key
+        data[html_file.stem.removeprefix(f"{date}_")] = html_file.read_text()
+    for md_file in markdown_includes:
+        data[md_file.stem.removeprefix(f"{date}_")] = mistune.html(md_file.read_text())
+    if yaml_include.exists():
+        data = data.update(read_yaml(yaml_include))
+    return data
 
 
 class Outbreak:
@@ -169,6 +195,9 @@ class Outbreak:
             "published_date": str(date),
             "data_url": self.metadata.get("url", ""),
         }
+        # read includes from outbreaks/<outbreak>/includes
+        # each include file must be prefixed by date
+        var.update(read_includes(self.name, datetime.datetime.utcnow().date()))
         df = read_csv(self.url, self.metadata.get("additional_date_columns", []))
         for plot in self.plots:
             plot_type, plot_key, *plot_info = plot.split("/")
