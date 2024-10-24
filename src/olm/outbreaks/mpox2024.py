@@ -26,6 +26,6 @@ def mpox_2024_aggregate(linelist: pd.DataFrame) -> pd.DataFrame:
     death_data = death_data.set_index(death_data.columns[0])
 
     # Retrieve death data for DRC, which is the last column
-    drc_deaths = int(death_data.loc["Democratic Republic of the Congo"].iloc[-1])
+    drc_deaths = int(death_data.loc["Democratic Republic of the Congo"].iloc[-2])
     agg.loc["Democratic Republic of the Congo", "Confirmed deaths"] = drc_deaths
     return agg.reset_index()
