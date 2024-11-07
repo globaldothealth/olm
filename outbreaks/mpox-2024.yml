@@ -18,7 +18,7 @@ plots:
   data/get_countries_with_status:
     country_col: Location_Admin0
     statuses: [confirmed, suspected]
-  date/get_countries_with_anyof_statuses:
+  data/get_countries_with_anyof_statuses:
     country_col: Location_Admin0
     statuses: [confirmed, suspected]
   figure/epicurve_source_report:
