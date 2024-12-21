@@ -98,7 +98,6 @@ div.info {
   color: white;
   padding: 2px 20px;
   background: #20635b;
-  border-radius: 5px;
 }
 
 div.info p {
@@ -161,9 +160,19 @@ p.print {
   display: none;
 }
 
-div#data-citation {
+div#data-citation, div#archive-container {
   padding: 0rem 0.8rem;
   border: 2px solid #0e7569
+}
+
+div#archive-container h2 {
+  font-size: 120%;
+}
+ul#archives {
+    font-family: monospace;
+    font-size: 110%;
+    list-style-type: none;
+    columns: 3;
 }
 
 div#data-citation p {

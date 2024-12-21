@@ -8,6 +8,16 @@ happening next with our data. More information on this outbreak can be found in 
 <a href="https://github.com/globaldothealth/outbreak-data/wiki/GHL2024.D11.1E71">outbreak data</a> page.
 </div>
 
+<div id="archive-container">
+    <ul id="archives">
+        {{#archives}}
+        <li><a href="{{ link }}">{{ text }}</a></li>
+        {{/archives}}
+    </ul>
+</div>
+
+<h2>Summary</h2>
+
 <p class="summary">
     <strong>{{ n_confirmed }}</strong> confirmed and <strong>{{ n_suspected }}</strong>
     suspected cases as of {{ date }}

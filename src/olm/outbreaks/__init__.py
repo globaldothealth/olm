@@ -32,12 +32,13 @@ from ..util import (
     invalidate_cache,
     msg_ok,
     rename_columns,
+    get_archives_for_outbreak
 )
 from ..types import LintResult, RowError
 from ..sources import source_databutton, source_google_sheet
 from .mpox2024 import mpox_2024_aggregate
 
-
+REPORT_BUCKET = "reports.global.health"
 OUTBREAK_SPECIFIC_METHODS = [mpox_2024_aggregate]
 ALLOWED_METHODS = OUTBREAK_SPECIFIC_METHODS + [
     get_counts,
@@ -167,6 +168,7 @@ class Outbreak:
 
     def make_report(
         self,
+        add_archive: bool = False,
         output_bucket: str | None = None,
         cloudfront_distribution: str | None = None,
     ):
@@ -174,6 +176,8 @@ class Outbreak:
 
         Parameters
         ----------
+        add_archive
+            Add links to report archives if True
         output_bucket
             Output S3 bucket to write result to, in addition to local HTML output
             to {outbreak_name}.html
@@ -195,6 +199,9 @@ class Outbreak:
             "published_date": str(date),
             "data_url": self.metadata.get("url", ""),
         }
+        if add_archive:
+            archives = get_archives_for_outbreak(self.name)
+            var["archives"] = [ {"link": a, "text": a.removesuffix(".html")} for a in archives]
         # read includes from outbreaks/<outbreak>/includes
         # each include file must be prefixed by date
         var.update(read_includes(self.name, datetime.datetime.utcnow().date()))

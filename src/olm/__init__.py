@@ -56,6 +56,7 @@ def main():
     report_parser = subparsers.add_parser("report", help="Generate briefing report")
     report_parser.add_argument("outbreak", help="Outbreak name")
     report_parser.add_argument("--data", help="Data URL")
+    report_parser.add_argument("-a", "--add-archive", help="Add link to archived reports", action="store_true")
     report_parser.add_argument(
         "-b", "--bucket", help="S3 bucket to write outbreak report to"
     )
@@ -105,8 +106,9 @@ def main():
         case "report":
             outbreak = Outbreak(OUTBREAKS_PATH / f"{args.outbreak}.yml", args.data)
             outbreak.make_report(
+                args.add_archive,
                 args.bucket,
-                args.cloudfront,
+                cloudfront_distribution=args.cloudfront,
             )
             if args.open and (Path(args.outbreak + ".html")).exists():
                 webbrowser.open("file://" + str(Path.cwd() / (args.outbreak + ".html")))

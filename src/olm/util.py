@@ -14,6 +14,7 @@ import pandas as pd
 
 pd.options.mode.chained_assignment = None
 
+REPORT_BUCKET = "reports.global.health"
 AGE_BINS = [
     (0, 0),
     (1, 9),
@@ -143,6 +144,15 @@ def store_s3(
         except Exception:
             logging.exception("An exception occurred while trying to upload files")
             raise
+
+def get_archives_for_outbreak(
+    outbreak: str,
+    bucket: str = REPORT_BUCKET
+) -> list[str]:
+    s3 = boto3.resource('s3')
+    bucket = s3.Bucket(bucket)
+    return [obj.key.removeprefix(outbreak + "/") for obj in bucket.objects.filter(Prefix=f'{outbreak}/20')]
+
 
 
 def invalidate_cache(
