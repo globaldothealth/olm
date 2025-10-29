@@ -100,6 +100,9 @@ def get_age_bins(age: str) -> range:
         return range(0, 1)
     if "-" in age:
         start_age, end_age = list(map(int, age.split("-")))
+    elif ">=" in age:
+        start_age = int(age.replace(">=", ""))
+        end_age = UPPER_LIMIT_AGE if start_age >= SENIOR_AGE else SENIOR_AGE
     elif ">" in age:
         start_age = int(age.replace(">", ""))
         end_age = UPPER_LIMIT_AGE if start_age >= SENIOR_AGE else SENIOR_AGE

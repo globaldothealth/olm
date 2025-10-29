@@ -3,28 +3,88 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ description }} Outbreak - {{ published_date }}</title>
-    <meta name="description" content="{{ description }} outbreak briefing report from Global.health">
+    <title>{{ description }}</title>
+    <meta name="description" content="{{ description }} briefing report from Global.health">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://reports.global.health/style.css">
+    <link rel="stylesheet" href="static/style.css">
+    <!--    Use commented one for deploying to s3, this solution is temporary, after the development phase the css file will be hosted in s3 and referenced using url   -->
+    <!--    <link rel="stylesheet" href="style.css"> -->
     <link rel="shortcut icon" type="image/x-icon"
-        href="https://global.health/wp-content/uploads/2020/10/gs-favicon-green.png">
+          href="https://global.health/wp-content/uploads/2020/10/gs-favicon-green.png">
     <link rel="apple-touch-icon" href="https://global.health/wp-content/uploads/2020/10/gs-favicon-green.png">
     <script src="https://cdn.plot.ly/plotly-2.12.1.min.js"></script>
 </head>
 
 <body>
-    <nav>
-        <ul>
-            <li><a href="{{ data_url }}">↓ Data</a></li>
-            <li><a href="https://github.com/globaldothealth/outbreak-data/wiki/{{ id }}">GitHub</a></li>
-        </ul>
-        <img class="logo" src="https://global.health/wp-content/uploads/2020/07/gh-logo-full-black.png"
-            alt="Global.health logo"></li>
-    </nav>
+<nav>
+    <ul>
+        <li><a href="{{ data_url }}">↓ Data</a></li>
+        <li><a href="https://github.com/globaldothealth/outbreak-data/wiki/{{ id }}">GitHub</a></li>
+    </ul>
+    <img class="logo" src="https://global.health/wp-content/uploads/2020/07/gh-logo-full-black.png"
+         alt="Global.health logo"></li>
+</nav>
 <main>
-<h1>{{ description }} Outbreak</h1>
-<p class="byline">From the <a href="https://global.health">Global.health</a> team (<a
-        href="mailto:info@global.health">info@global.health</a>). Published on {{ published_date}}.
-    <a href="https://reports.global.health/{{ name }}/{{ published_date }}.html">Permalink</a>
-</p>
+    <h1>{{ description }}</h1>
+    <table class="header-table">
+        <tr>
+            <td><strong>Pathogen</strong></td>
+            <td>{{{display_name}}}</td>
+        </tr>
+        <tr>
+            <td><strong>G.h Code</strong></td>
+            <td>{{{id}}}</td>
+        </tr>
+        <tr>
+            <td><strong>Date of Report</strong></td>
+            <td>{{{published_date}}}</td>
+        </tr>
+        <tr>
+            <td><strong>Update number</strong></td>
+            <td>{{{update_number}}}</td>
+        </tr>
+        <tr>
+            <td><strong>Reporting period</strong></td>
+            <td>{{{reporting_period}}}</td>
+        </tr>
+        <tr>
+            <td><strong>Event Classification</strong></td>
+            <td>{{{event_classification}}}</td>
+        </tr>
+        <tr>
+            <td><strong>Primary Data Sources</strong></td>
+            <td>{{{primary_data_sources}}}</td>
+        </tr>
+        <tr>
+            <td><strong>Report by</strong></td>
+            <td>Global.health <a href="mailto:info@global.health">info@global.health</a>
+            </td>
+        </tr>
+    </table>
+    <div class="header-links">
+        <div class="header-link">
+            <a href="https://global.health/outbreaks/avian-influenza-usa/" target="_blank">
+                <img src="https://dev-globalhealth.pantheonsite.io/wp-content/uploads/2025/07/avian-influenza-usa-1c-high-res.png">
+                <p>Outbreak Page</p>
+            </a>
+        </div>
+        <div class="header-link">
+            <a href="https://github.com/globaldothealth/outbreak-data/wiki/GHL2024.D11.1E31" target="_blank">
+                <img src="https://dev-globalhealth.pantheonsite.io/wp-content/uploads/2025/10/avian-influenza-data-dictionary.png">
+                <div><p>GitHub</p></div>
+            </a>
+        </div>
+        <div class="header-link">
+            <a href="https://map.influenza-2024.global.health/state" target="_blank">
+                <img src="https://dev-globalhealth.pantheonsite.io/wp-content/uploads/2025/08/avian-influenza-map-updated.png">
+                <p>Map</p>
+            </a>
+        </div>
+        <div class="header-link">
+            <a href="https://www.thinkglobalhealth.org/article/timeline-h5n1-bird-flu-outbreak-us" target="_blank">
+                <img src="https://dev-globalhealth.pantheonsite.io/wp-content/uploads/2025/03/avian-influenza-timeline.png">
+                <p>Timeline</p>
+            </a>
+        </div>
+    </div>
+</main>

@@ -1,0 +1,118 @@
+name: avian-influenza
+display_name: Avian Influenza
+id: GHL2024.D11.1E31
+description: Avian Influenza 2024-2025 Outbreak in the United States of America
+update_number: 1
+reporting_period: 2025-02-16 - 2025-02-22 (Week 8)
+event_classification: Zoonotic
+primary_data_sources: CDC, USDA, WOAH
+schema: https://raw.githubusercontent.com/globaldothealth/outbreak-schema/main/outbreak.schema.json
+url: https://avian-influenza-2024.s3.eu-central-1.amazonaws.com/latest.csv
+url_poultry: https://avian-influenza-2024.s3.eu-central-1.amazonaws.com/poultry/latest.csv
+url_cattle: https://avian-influenza-2024.s3.eu-central-1.amazonaws.com/cattle/latest.csv
+plots:
+  data/get_counts:
+    date_col: Date_confirmation
+    static_counts: {
+      n_new_confirmed: 2,
+      n_new_probable: 0,
+      n_new_dead: 0,
+      n_new_farm_workers_infected: 1,
+      n_new_poultry_cases: 18,
+      n_poultry_cases: 325,
+      n_poultry_states_affected: 37,
+      n_poultry_us_territory: 1,
+      n_new_cattle_cases: 4,
+      n_cattle_cases: 977,
+      n_cattle_states_affected: 17,
+    }
+  figure/epicurve:
+    title: Date of confirmation
+    date_col: Date_confirmation
+    groupby_col: Case_status
+  #  figure/epicurve_interactive:
+  #    dropdown_column: Case_status
+  #  figure/epicurve_location_state_status:
+  #    title: State distribution
+  #    date_col: Date_confirmation
+  #    groupby_col: Location_Admin1
+  #  figure/epicurve_location_county_status:
+  #    title: County distribution
+  #    date_col: Date_confirmation
+  #    groupby_col: Location_Admin2
+  figure/epicurve_contact_animal:
+    title: Contact animal
+    date_col: Date_confirmation
+    groupby_col: Contact_animal_species
+  #  figure/age_gender:
+  #  figure/delay_distribution_consult:
+  #    col: Date_confirmation
+  #    title: Delay to consultation from onset
+  #    index: A
+  #    max_delay_days: 20
+  #  figure/delay_distribution_death:
+  #    col: Date_death
+  #    title: Delay to death from onset
+  #    index: B
+  #    max_delay_days: 20
+  figure/data_availability:
+  figure/wordcloud:
+    term_values: {
+      pink_eye_conjunctivitis: 25,
+      watery_eyes: 17,
+      respiratory_symptoms: 9,
+      cough: 6,
+      fever: 6,
+      sore_throat: 5,
+      nasal_congestion: 5,
+      runny_nose: 4,
+      chills: 4,
+      upper_respiratory_tract: 2,
+      subconjunctival_hemorrhage: 1,
+      chest_pain: 1,
+      nausea: 1,
+      weakness: 1,
+      vomiting: 1,
+      diarrhoea: 1,
+      fatigue: 1
+    }
+  figure/term_frequency:
+    term_column: Symptoms
+    term_values: {
+      pink_eye_conjunctivitis: 25,
+      watery_eyes: 17,
+      respiratory_symptoms: 9,
+      cough: 6,
+      fever: 6,
+      sore_throat: 5,
+      nasal_congestion: 5,
+      runny_nose: 4,
+      chills: 4,
+      upper_respiratory_tract: 2,
+      subconjunctival_hemorrhage: 1,
+      chest_pain: 1,
+      nausea: 1,
+      weakness: 1,
+      vomiting: 1,
+      diarrhoea: 1,
+      fatigue: 1
+    }
+  table/exposure_over_states_confirmed:
+    case_status_value: 'confirmed'
+    groupby_col: 'Location_Admin1'
+    groupby_col_name: 'State'
+    change_since_last_report: {
+      "Ohio": 1,
+      "Wyoming": 1
+    }
+  table/exposure_over_states_probable:
+    case_status_value: 'probable'
+    groupby_col: 'Location_Admin1'
+    groupby_col_name: 'State'
+    change_since_last_report: { }
+  figure/new_cases_weekly:
+    date_col: Date_confirmation
+  figure/bar_genomics:
+  figure/bar_age_gender:
+
+

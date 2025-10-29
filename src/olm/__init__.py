@@ -84,7 +84,7 @@ def main():
             for outbreak in OUTBREAKS:
                 outbreak = Outbreak(OUTBREAKS_PATH / f"{outbreak}.yml")
                 print(
-                    f"\033[1m{outbreak:12s} \033[0m{outbreak.description} [{outbreak.id}]"
+                    f"\033[1m{outbreak.name:12s} \033[0m{outbreak.metadata['description']} [{outbreak.metadata['id']}]"
                 )
         case "get":
             outbreak = Outbreak(OUTBREAKS_PATH / f"{args.outbreak}.yml")

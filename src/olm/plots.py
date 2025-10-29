@@ -8,8 +8,22 @@ import pandas as pd
 import numpy as np
 from dateutil.parser import ParserError
 import plotly.graph_objects as go
+
 import plotly.express as px
 from plotly.subplots import make_subplots
+from wordcloud import WordCloud
+import matplotlib.pyplot as plt
+import io
+import plotly.tools as tls
+import plotly.io as pio
+import plotly.express as px
+import matplotlib.image as mpimg
+from PIL import Image
+import os
+from collections import Counter
+from functools import reduce
+from datetime import datetime, timedelta
+import collections
 
 from .util import (
     percentage_occurrence,
@@ -37,7 +51,7 @@ pd.options.mode.chained_assignment = None
 
 
 def get_aggregate(
-    df: pd.DataFrame, country_col: str, columns=list[tuple[str, str]]
+        df: pd.DataFrame, country_col: str, columns=list[tuple[str, str]]
 ) -> pd.DataFrame:
     "Get aggregate for line list"
     dfs = []
@@ -47,10 +61,10 @@ def get_aggregate(
 
 
 def get_countries_with_status(
-    df: pd.DataFrame,
-    country_col: str,
-    statuses: list[str],
-    status_col: str = "Case_status",
+        df: pd.DataFrame,
+        country_col: str,
+        statuses: list[str],
+        status_col: str = "Case_status",
 ) -> dict[str, int]:
     """For a set of statuses, gets number of countries which have the status,
     and the number of countries who have that status exclusively"""
@@ -68,10 +82,10 @@ def get_countries_with_status(
 
 
 def get_countries_with_anyof_statuses(
-    df: pd.DataFrame,
-    country_col: str,
-    statuses: list[str],
-    status_col: str = "Case_status",
+        df: pd.DataFrame,
+        country_col: str,
+        statuses: list[str],
+        status_col: str = "Case_status",
 ) -> dict[str, int]:
     "Gets number of countries which have any of the statuses listed"
     return {
@@ -104,14 +118,14 @@ def get_age_bin_data(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def get_delays(
-    df: pd.DataFrame, target_col: str, onset_col: str = "Date_onset"
+        df: pd.DataFrame, target_col: str, onset_col: str = "Date_confirmation"
 ) -> pd.Series:
     both = df[
         ~pd.isna(df[target_col])
         & ~pd.isna(df[onset_col])
         & df[target_col].astype(str).str.fullmatch(REGEX_DATE)
         & df[onset_col].astype(str).str.fullmatch(REGEX_DATE)
-    ]
+        ]
     try:
         both[target_col] = pd.to_datetime(both[target_col])
         both[onset_col] = pd.to_datetime(both[onset_col])
@@ -122,11 +136,11 @@ def get_delays(
 
 
 def get_epicurve(
-    df: pd.DataFrame,
-    date_col: str,
-    groupby_col: str,
-    values: list[str] | None = None,
-    cumulative: bool = True,
+        df: pd.DataFrame,
+        date_col: str,
+        groupby_col: str,
+        values: list[str] | None = None,
+        cumulative: bool = True,
 ) -> pd.DataFrame:
     """Returns epidemic curve
 
@@ -156,23 +170,30 @@ def get_epicurve(
     return epicurve.cumsum() if cumulative else epicurve
 
 
-def get_counts(df: pd.DataFrame, date_col: str) -> dict[str, int]:
+def get_counts(df: pd.DataFrame, date_col: str, static_counts: dict[str, int]) -> dict[str, int]:
     status = df.Case_status.value_counts()
     confirmed = df[df.Case_status == "confirmed"]
+    location_admin1 = df['Location_Admin1']
+    outcome = df['Outcome']
+    occupation = df[df.Case_status == "confirmed"]['Occupation'].dropna()
     return {
         "n_confirmed": int(status.confirmed),
         "n_probable": int(status.get("probable", 0)),
         "n_suspected": int(status.get("suspected", 0)),
-        "date": str(df[~pd.isna(df[date_col])][date_col].max().date()),
+        "n_unique_states": len(list(location_admin1.value_counts())),
+        "n_dead": outcome.value_counts()['death'],
+        "n_farm_workers_infected": sum('Farm Worker' in s for s in occupation.values),
+        "date": str(df[~pd.isna(df[date_col])][date_col].max()),
         "pc_valid_age_gender": percentage_occurrence(
             confirmed,
             (~confirmed.Age.isna()) & (~confirmed.Gender.isna()),
         ),
+        **static_counts,
     }
 
 
 def get_timeseries_location_status(
-    df: pd.DataFrame, fill_index: bool = False
+        df: pd.DataFrame, fill_index: bool = False
 ) -> pd.DataFrame:
     "Returns a time series case dataset (number of cases by location by date stratified by confirmed and probable)"
     statuses = ["confirmed", "probable"]
@@ -180,7 +201,7 @@ def get_timeseries_location_status(
         df.Case_status.isin(statuses)
         & ~pd.isna(df.Date_onset_estimated)
         & ~pd.isna(df.Location_District)
-    ]
+        ]
     locations = sorted(set(df.Location_District)) + [None]
     mindate, maxdate = df.Date_onset_estimated.min(), df.Date_onset_estimated.max()
 
@@ -221,7 +242,7 @@ def get_timeseries_location_status(
 
 
 def plot_timeseries_location_status(
-    df: pd.DataFrame, admin_column: str, columns: int = 3
+        df: pd.DataFrame, admin_column: str, columns: int = 3
 ):
     df = get_timeseries_location_status(df, fill_index=True)
     locations = sorted(set(df[admin_column]) - {"Total"})
@@ -291,27 +312,28 @@ def plot_timeseries_location_status(
 
 
 def plot_epicurve(
-    df: pd.DataFrame,
-    title: str,
-    date_col: str,
-    groupby_col: str,
-    values: list[str] | None = None,
-    cumulative: bool = True,
-    palette: list[str] = PALETTE,
+        df: pd.DataFrame,
+        title: str,
+        date_col: str,
+        groupby_col: str,
+        values: list[str] | None = None,
+        cumulative: bool = True,
+        palette: list[str] = PALETTE,
 ):
     values = non_null_unique(df[groupby_col]) if values is None else values
     data = get_epicurve(df, date_col, groupby_col, values, cumulative=cumulative)
     fig = go.Figure()
     for idx, value in enumerate(values):
-        fig.add_trace(
-            go.Scatter(
-                x=data.index,
-                y=data[value],
-                name=value,
-                line_color=palette[idx],
-                line_width=3,
-            ),
-        )
+        if value in data.columns:
+            fig.add_trace(
+                go.Scatter(
+                    x=data.index,
+                    y=data[value],
+                    name=value,
+                    line_color=palette[idx],  # turn off for higher counts of elements
+                    line_width=3,
+                ),
+            )
 
     fig.update_xaxes(
         title_text=title,
@@ -340,11 +362,11 @@ def plot_epicurve(
 
 
 def plot_delay_distribution(
-    df: pd.DataFrame,
-    col: str,
-    title: str,
-    index: str,
-    max_delay_days: int = 30,
+        df: pd.DataFrame,
+        col: str,
+        title: str,
+        index: str,
+        max_delay_days: int = 30,
 ):
     delays = get_delays(df, col).dt.days.value_counts()
     if max_delay_days not in delays:
@@ -450,4 +472,388 @@ def plot_age_gender(df: pd.DataFrame):
         )
     )
 
+    return fig
+
+
+def plot_data_availability(df: pd.DataFrame):
+    # Get metadata (column names, count, row count)
+    y = df.columns.values
+    row_count = len(df.index)
+    column_count = len(y)
+
+    fig = go.Figure()
+    fig.update_yaxes(title="Variable", title_font_family=TITLE_FONT, gridcolor=GRID_COLOR, dtick=1)
+    fig.update_xaxes(
+        tickvals=np.linspace(0., row_count, num=10 + 1),
+        ticktext=list(map(lambda t: f'{t / 10 * 100}%', range(11))),
+        title="Percentage of available data",
+        title_font_family=TITLE_FONT,
+        gridcolor=GRID_COLOR,
+        title_font_color=FG_COLOR,
+        zeroline=False,
+    )
+    fig.update_layout(
+        {
+            "barmode": "overlay",
+            "bargap": 0.1,
+            "template": "plotly_white",
+            "font_family": FONT,
+            "hoverlabel_font_family": FONT,
+            "plot_bgcolor": BG_COLOR,
+            "paper_bgcolor": BG_COLOR,
+            "legend_font_family": TITLE_FONT,
+            "legend_font_size": LEGEND_FONT_SIZE,
+            'height': 250 + column_count * 15,  # Scale the height depending on how many columns are in the dataframe
+        }
+    )
+
+    fig.add_trace(
+        go.Bar(
+            y=y,
+            x=df.count(),
+            orientation="h",
+            name="",
+            hovertemplate=None,
+            textposition="none",
+            marker={"color": PRIMARY_COLOR},
+        )
+    )
+    fig.update_traces(
+        customdata=list(map(lambda c: round(c / row_count * 100, 1), df.count())),  # Completeness percentage
+        hovertemplate="<br>".join([
+            "%{y} completeness: %{customdata}%",
+        ])
+    )
+
+    return fig
+
+
+def plot_term_frequency(df: pd.DataFrame, term_column: str, term_values: dict[str: int]):
+    # Get term occurrences and metadata
+    terms = (','.join(df[df[term_column].notnull()][term_column].tolist())).split(',')
+    y = list(term_values.keys())
+    term_occurrences = Counter(list(map(str.lstrip, terms)))
+    term_occurrences = pd.Series(data=term_occurrences, index=y)
+    row_count = len(df.index)
+
+    fig = go.Figure()
+    fig.update_yaxes(title="Symptiom Type", title_font_family=TITLE_FONT, gridcolor=GRID_COLOR, dtick=1)
+    fig.update_xaxes(
+        tickvals=np.linspace(0., row_count, num=10 + 1),
+        ticktext=list(map(lambda t: f'{t / 10 * 100}%', range(11))),
+        title=f"Term frequency in {term_column}",
+        title_font_family=TITLE_FONT,
+        gridcolor=GRID_COLOR,
+        title_font_color=FG_COLOR,
+        zeroline=False,
+    )
+    fig.update_layout(
+        {
+            "barmode": "overlay",
+            "bargap": 0.1,
+            "template": "plotly_white",
+            "font_family": FONT,
+            "hoverlabel_font_family": FONT,
+            "plot_bgcolor": BG_COLOR,
+            "paper_bgcolor": BG_COLOR,
+            "legend_font_family": TITLE_FONT,
+            "legend_font_size": LEGEND_FONT_SIZE,
+            'height': 250 + len(y) * 15,
+        }
+    )
+
+    fig.add_trace(
+        go.Bar(
+            y=y,
+            x=pd.Series(data=term_values, index=y),
+            orientation="h",
+            name="",
+            hovertemplate=None,
+            textposition="none",
+            marker={"color": PRIMARY_COLOR},
+        )
+    )
+    fig.update_traces(
+        customdata=list(map(lambda c: round(c / row_count * 100, 1), term_occurrences)),
+        hovertemplate="<br>".join([
+            "%{y} : %{customdata}%",
+        ])
+    )
+
+    return fig
+
+
+### PROTOTYPE NOT IN USE
+def plot_epicurve_interactive(df: pd.DataFrame, dropdown_column: str, palette: list[str] = PALETTE):
+    df_confirmed = df.loc[df['Case_status'] == 'confirmed']
+    df_probable = df.loc[df['Case_status'] == 'probable']
+    values_confirmed = non_null_unique(df_confirmed['Contact_animal_species'])
+    values_probable = non_null_unique(df_probable['Contact_animal_species'])
+    data_confirmed = get_epicurve(df_confirmed, 'Date_entry', 'Contact_animal_species', values_confirmed,
+                                  cumulative=True)
+    data_probable = get_epicurve(df_probable, 'Date_entry', 'Contact_animal_species', values_probable, cumulative=True)
+
+    fig = go.Figure()
+
+    for idx, value in enumerate(values_confirmed):
+        if value in data_confirmed.columns:
+            fig.add_trace(
+                go.Scatter(
+                    x=data_confirmed.index,
+                    y=data_confirmed[value],
+                    name=value,
+                    line_color=palette[idx],
+                    line_width=3,
+                ),
+            )
+
+    fig.update_xaxes(
+        title_text="Date of Entry",
+        title_font_family=TITLE_FONT,
+        title_font_color=FG_COLOR,
+        gridcolor=GRID_COLOR,
+    )
+
+    fig.update_yaxes(
+        title_text="Cumulative cases" if True else "Cases",
+        title_font_family=TITLE_FONT,
+        title_font_color=FG_COLOR,
+        gridcolor=GRID_COLOR,
+        zeroline=False,
+    )
+    fig.update_layout(
+        plot_bgcolor=BG_COLOR,
+        font_family=FONT,
+        paper_bgcolor=BG_COLOR,
+        hoverlabel_font_family=FONT,
+        legend_font_family=TITLE_FONT,
+        legend_font_size=LEGEND_FONT_SIZE,
+    )
+
+    buttons = list([dict(
+        args=[
+            {
+                'y': [data_confirmed[value_confirmed] for value_confirmed in values_confirmed],
+                'x': [data_confirmed.index],
+            }
+        ],
+        label="Confirmed",
+        method="restyle"
+    ),
+        dict(
+            args=[
+                {
+                    'y': [data_probable[value_probable] for value_probable in values_probable],
+                    'x': [data_probable.index],
+                }
+            ],
+            label="Probable",
+            method="restyle"
+        )
+    ])
+
+    fig.update_layout(
+        updatemenus=[
+            go.layout.Updatemenu(
+                buttons=buttons,
+                direction="down",
+                pad={"r": 10, "t": 10},
+                showactive=True,
+                x=-0.25,
+                xanchor="left",
+                y=1,
+                yanchor="top"
+            ),
+        ]
+    )
+
+    return fig
+
+
+def plot_wordcloud(df: pd.DataFrame, term_values: dict[str: int]):
+    # Constants
+    img_width = 1600
+    img_height = 800
+    scale_factor = 0.5
+
+    wordcloud = WordCloud(
+        background_color="rgba(255, 255, 255, 0)",
+        mode="RGBA",
+        width=img_width,
+        height=img_height,
+        prefer_horizontal=1
+    ).generate_from_frequencies(term_values)
+
+    fig = go.Figure(layout=go.Layout(paper_bgcolor='rgba(0,0,0,0)',
+                                     plot_bgcolor='rgba(0,0,0,0)'))
+
+    # Add invisible scatter trace.
+    # This trace is added to help the autoresize logic work.
+    fig.add_trace(
+        go.Scatter(
+            x=[0, img_width * scale_factor],
+            y=[0, img_height * scale_factor],
+            mode="markers",
+            marker_opacity=0
+        )
+    )
+
+    # Configure axes
+    fig.update_xaxes(
+        visible=False,
+        range=[0, img_width * scale_factor]
+    )
+
+    fig.update_yaxes(
+        visible=False,
+        range=[0, img_height * scale_factor],
+        scaleanchor="x"
+    )
+
+    # Add image
+    fig.add_layout_image(
+        dict(
+            x=0,
+            sizex=img_width * scale_factor,
+            y=img_height * scale_factor,
+            sizey=img_height * scale_factor,
+            xref="x",
+            yref="y",
+            opacity=1.0,
+            layer="below",
+            sizing="stretch",
+            source=wordcloud.to_image())
+    )
+
+    # Configure other layout
+    fig.update_layout(
+        width=img_width * scale_factor,
+        height=img_height * scale_factor,
+        margin={"l": 0, "r": 0, "t": 0, "b": 0},
+        plot_bgcolor="rgba(0, 0, 0, 0)",
+    )
+
+    return fig
+
+
+def table_exposure(df: pd.DataFrame, case_status_value: str, groupby_col: str, groupby_col_name: str,
+                   change_since_last_report: dict[str, int]):
+    cattle_column = 'Exposure from Commercial Cattle'
+    poultry_column = 'Exposure from Commercial Poultry'
+    other_column = 'Other Animal Exposure'
+    unknown_column = 'Exposure Source Unknown'
+    total_column = 'Total'
+    change_column = 'Change Since Last Report'
+
+    # Extract details for exposure source over location
+    df = df[df['Case_status'] == case_status_value]
+    total = df[groupby_col].value_counts()
+    cattle = df[df['Contact_animal_species'] == 'Cow'][groupby_col].value_counts()
+    poultry = df[(df['Contact_animal'] == 'COMMERCIAL') & (df['Contact_animal_species'] == 'Poultry')][
+        groupby_col].value_counts()
+    other = df[df['Contact_animal'] == 'BACKYARD'][groupby_col].value_counts()
+    unknown = df[df['Contact_animal'].isna()][groupby_col].value_counts()
+
+    # Generate dataframe
+    table = pd.DataFrame({groupby_col_name: total.index, total_column: total.values})
+    table[cattle_column] = table[groupby_col_name].map(cattle)
+    table[poultry_column] = table[groupby_col_name].map(poultry)
+    table[other_column] = table[groupby_col_name].map(other)
+    table[unknown_column] = table[groupby_col_name].map(unknown)
+    table[change_column] = table[groupby_col_name].map(change_since_last_report)
+
+    # Reorder dataframe columns
+    table = table.loc[:,
+            [groupby_col_name, cattle_column, poultry_column, other_column, unknown_column, total_column,
+             change_column]]
+
+    # Replace float values with int and fill empty cells with zeros
+    pd.options.display.float_format = '{:,.0f}'.format
+    return table.fillna(int(0)).to_html(index=False)
+
+
+def plot_new_cases_weekly(df: pd.DataFrame, date_col: str, palette: list[str] = PALETTE):
+    fig = go.Figure()
+    date_and_count = df[date_col].value_counts().sort_index()
+    x = date_and_count.index
+    y = date_and_count.values
+
+    # For each of the case occurrences propagate values for the next 7 days
+    weekly = {}
+    for x_idx in range(len(list(x))):
+        for i in range(7):
+            date = x[x_idx] + timedelta(i)
+            if date in weekly:
+                weekly[date] += int(y[x_idx])
+            else:
+                weekly[date] = int(y[x_idx])
+
+    fig.add_trace(go.Scatter(x=list(weekly.keys()), y=list(weekly.values()), line_color=palette[0], line_width=3))
+    fig.update_yaxes(title="Weekly trailing case count", title_font_family=TITLE_FONT, gridcolor=GRID_COLOR)
+    fig.update_xaxes(title="Date of confirmation", title_font_family=TITLE_FONT, gridcolor=GRID_COLOR)
+    fig.update_layout(
+        {
+            "barmode": "overlay",
+            "bargap": 0.1,
+            "template": "plotly_white",
+            "font_family": FONT,
+            "hoverlabel_font_family": FONT,
+            "plot_bgcolor": BG_COLOR,
+            "paper_bgcolor": BG_COLOR,
+            "legend_font_family": TITLE_FONT,
+            "legend_font_size": LEGEND_FONT_SIZE,
+        }
+    )
+    return fig
+
+
+def plot_bar_genomics(df: pd.DataFrame):
+    color_column = "Animal Exposure"
+    y_axis = "Genomics_Genotype"
+
+    df = df[df[y_axis].notnull()]
+
+    # Genomics plot specific
+    df[color_column] = df["Contact_animal"] + ' ' + df["Contact_animal_species"]
+    df = df.replace({color_column: {
+        'COMMERCIAL Cow': "Cattle",
+        "COMMERCIAL Poultry": "Poultry",
+        "BACKYARD Birds": "Other",
+        "BACKYARD Poultry": "Other"
+    }})
+
+    return stacked_barchart(df, y_axis, color_column, "Case Count", "Genomics Genotype")
+
+
+def plot_bar_age_gender(df: pd.DataFrame):
+    color_column = "Gender"
+    y_axis = "Age"
+
+    df = df[df[y_axis].notnull()]
+
+    # Age-Gender plot specific
+    df[color_column] = df[color_column].fillna(value="unknown")
+    df = df.infer_objects(copy=False).replace('>65', '>=18')  # Person above 65 years of age is also older than 18
+    df = df.sort_values(by=[color_column])
+
+    return stacked_barchart(df, y_axis, color_column, "Case Count", "Age Group")
+
+
+def stacked_barchart(df, y_axis, color_column, x_title, y_title, palette: list[str] = PALETTE):
+    fig = px.bar(df, y=y_axis, color=color_column, orientation='h', color_discrete_sequence=palette)
+    fig.update_layout(
+        {
+            "template": "plotly_white",
+            "font_family": FONT,
+            "hoverlabel_font_family": FONT,
+            "plot_bgcolor": BG_COLOR,
+            "paper_bgcolor": BG_COLOR,
+            "legend_font_family": TITLE_FONT,
+            "legend_font_size": LEGEND_FONT_SIZE,
+            "legend_bgcolor": "rgba(0,0,0,0)",
+        }
+    )
+    fig.update_xaxes(title=x_title)
+    fig.update_yaxes(title=y_title)
+    fig.update_traces(hoverinfo="skip", hovertemplate=None)
     return fig
