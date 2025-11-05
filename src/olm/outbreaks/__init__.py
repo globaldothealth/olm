@@ -86,7 +86,7 @@ METHOD = {f.__name__: f for f in ALLOWED_METHODS}
 
 
 def render_figure(fig, key: str) -> str:
-    return {key: plotly.io.to_html(fig, include_plotlyjs=False, full_html=False)}
+    return {key: plotly.io.to_html(fig, include_plotlyjs=False, full_html=False, config={'displayModeBar': False})}
 
 
 def get_plot_method(key: str) -> str | None:

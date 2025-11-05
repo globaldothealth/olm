@@ -9,21 +9,11 @@ import numpy as np
 from dateutil.parser import ParserError
 import plotly.graph_objects as go
 
-import plotly.express as px
 from plotly.subplots import make_subplots
 from wordcloud import WordCloud
-import matplotlib.pyplot as plt
-import io
-import plotly.tools as tls
-import plotly.io as pio
 import plotly.express as px
-import matplotlib.image as mpimg
-from PIL import Image
-import os
 from collections import Counter
-from functools import reduce
-from datetime import datetime, timedelta
-import collections
+from datetime import timedelta
 
 from .util import (
     percentage_occurrence,
@@ -356,6 +346,7 @@ def plot_epicurve(
         hoverlabel_font_family=FONT,
         legend_font_family=TITLE_FONT,
         legend_font_size=LEGEND_FONT_SIZE,
+        margin={"l": 0, "r": 0, "t": 5, "b": 5},
     )
 
     return fig
@@ -387,6 +378,7 @@ def plot_delay_distribution(
         title_font_family=TITLE_FONT,
         hoverlabel_font_family=FONT,
         bargap=0.2,
+        margin={"l": 0, "r": 0, "t": 5, "b": 5},
     )
     fig.update_xaxes(
         title_font_family=TITLE_FONT,
@@ -433,17 +425,16 @@ def plot_age_gender(df: pd.DataFrame):
         zeroline=False,
     )
     fig.update_layout(
-        {
-            "barmode": "overlay",
-            "bargap": 0.1,
-            "template": "plotly_white",
-            "font_family": FONT,
-            "hoverlabel_font_family": FONT,
-            "plot_bgcolor": BG_COLOR,
-            "paper_bgcolor": BG_COLOR,
-            "legend_font_family": TITLE_FONT,
-            "legend_font_size": LEGEND_FONT_SIZE,
-        }
+        barmode="overlay",
+        bargap=0.1,
+        template="plotly_white",
+        font_family=FONT,
+        hoverlabel_font_family=FONT,
+        plot_bgcolor=BG_COLOR,
+        paper_bgcolor=BG_COLOR,
+        legend_font_family=TITLE_FONT,
+        legend_font_size=LEGEND_FONT_SIZE,
+        margin={"l": 0, "r": 0, "t": 5, "b": 5},
     )
 
     fig.add_trace(
@@ -493,18 +484,17 @@ def plot_data_availability(df: pd.DataFrame):
         zeroline=False,
     )
     fig.update_layout(
-        {
-            "barmode": "overlay",
-            "bargap": 0.1,
-            "template": "plotly_white",
-            "font_family": FONT,
-            "hoverlabel_font_family": FONT,
-            "plot_bgcolor": BG_COLOR,
-            "paper_bgcolor": BG_COLOR,
-            "legend_font_family": TITLE_FONT,
-            "legend_font_size": LEGEND_FONT_SIZE,
-            'height': 250 + column_count * 15,  # Scale the height depending on how many columns are in the dataframe
-        }
+        barmode="overlay",
+        bargap=0.1,
+        template="plotly_white",
+        font_family=FONT,
+        hoverlabel_font_family=FONT,
+        plot_bgcolor=BG_COLOR,
+        paper_bgcolor=BG_COLOR,
+        legend_font_family=TITLE_FONT,
+        legend_font_size=LEGEND_FONT_SIZE,
+        height=250 + column_count * 15,  # Scale the height depending on how many columns are in the dataframe
+        margin={"l": 0, "r": 0, "t": 5, "b": 5},
     )
 
     fig.add_trace(
@@ -537,7 +527,7 @@ def plot_term_frequency(df: pd.DataFrame, term_column: str, term_values: dict[st
     row_count = len(df.index)
 
     fig = go.Figure()
-    fig.update_yaxes(title="Symptiom Type", title_font_family=TITLE_FONT, gridcolor=GRID_COLOR, dtick=1)
+    fig.update_yaxes(title="Symptom Type", title_font_family=TITLE_FONT, gridcolor=GRID_COLOR, dtick=1)
     fig.update_xaxes(
         tickvals=np.linspace(0., row_count, num=10 + 1),
         ticktext=list(map(lambda t: f'{t / 10 * 100}%', range(11))),
@@ -548,18 +538,17 @@ def plot_term_frequency(df: pd.DataFrame, term_column: str, term_values: dict[st
         zeroline=False,
     )
     fig.update_layout(
-        {
-            "barmode": "overlay",
-            "bargap": 0.1,
-            "template": "plotly_white",
-            "font_family": FONT,
-            "hoverlabel_font_family": FONT,
-            "plot_bgcolor": BG_COLOR,
-            "paper_bgcolor": BG_COLOR,
-            "legend_font_family": TITLE_FONT,
-            "legend_font_size": LEGEND_FONT_SIZE,
-            'height': 250 + len(y) * 15,
-        }
+        barmode="overlay",
+        bargap=0.1,
+        template="plotly_white",
+        font_family=FONT,
+        hoverlabel_font_family=FONT,
+        plot_bgcolor=BG_COLOR,
+        paper_bgcolor=BG_COLOR,
+        legend_font_family=TITLE_FONT,
+        legend_font_size=LEGEND_FONT_SIZE,
+        height=250 + len(y) * 15,
+        margin={"l": 0, "r": 0, "t": 5, "b": 5},
     )
 
     fig.add_trace(
@@ -628,6 +617,7 @@ def plot_epicurve_interactive(df: pd.DataFrame, dropdown_column: str, palette: l
         hoverlabel_font_family=FONT,
         legend_font_family=TITLE_FONT,
         legend_font_size=LEGEND_FONT_SIZE,
+        margin={"l": 0, "r": 0, "t": 5, "b": 5},
     )
 
     buttons = list([dict(
@@ -684,8 +674,7 @@ def plot_wordcloud(df: pd.DataFrame, term_values: dict[str: int]):
         prefer_horizontal=1
     ).generate_from_frequencies(term_values)
 
-    fig = go.Figure(layout=go.Layout(paper_bgcolor='rgba(0,0,0,0)',
-                                     plot_bgcolor='rgba(0,0,0,0)'))
+    fig = go.Figure()
 
     # Add invisible scatter trace.
     # This trace is added to help the autoresize logic work.
@@ -727,10 +716,11 @@ def plot_wordcloud(df: pd.DataFrame, term_values: dict[str: int]):
 
     # Configure other layout
     fig.update_layout(
-        width=img_width * scale_factor,
         height=img_height * scale_factor,
-        margin={"l": 0, "r": 0, "t": 0, "b": 0},
-        plot_bgcolor="rgba(0, 0, 0, 0)",
+        margin={"l": 0, "r": 0, "t": 5, "b": 5},
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)',
+        width=img_width * scale_factor,
     )
 
     return fig
@@ -792,17 +782,16 @@ def plot_new_cases_weekly(df: pd.DataFrame, date_col: str, palette: list[str] = 
     fig.update_yaxes(title="Weekly trailing case count", title_font_family=TITLE_FONT, gridcolor=GRID_COLOR)
     fig.update_xaxes(title="Date of confirmation", title_font_family=TITLE_FONT, gridcolor=GRID_COLOR)
     fig.update_layout(
-        {
-            "barmode": "overlay",
-            "bargap": 0.1,
-            "template": "plotly_white",
-            "font_family": FONT,
-            "hoverlabel_font_family": FONT,
-            "plot_bgcolor": BG_COLOR,
-            "paper_bgcolor": BG_COLOR,
-            "legend_font_family": TITLE_FONT,
-            "legend_font_size": LEGEND_FONT_SIZE,
-        }
+        barmode="overlay",
+        bargap=0.1,
+        template="plotly_white",
+        font_family=FONT,
+        hoverlabel_font_family=FONT,
+        plot_bgcolor=BG_COLOR,
+        paper_bgcolor=BG_COLOR,
+        legend_font_family=TITLE_FONT,
+        legend_font_size=LEGEND_FONT_SIZE,
+        margin={"l": 0, "r": 0, "t": 5, "b": 5},
     )
     return fig
 
@@ -842,16 +831,15 @@ def plot_bar_age_gender(df: pd.DataFrame):
 def stacked_barchart(df, y_axis, color_column, x_title, y_title, palette: list[str] = PALETTE):
     fig = px.bar(df, y=y_axis, color=color_column, orientation='h', color_discrete_sequence=palette)
     fig.update_layout(
-        {
-            "template": "plotly_white",
-            "font_family": FONT,
-            "hoverlabel_font_family": FONT,
-            "plot_bgcolor": BG_COLOR,
-            "paper_bgcolor": BG_COLOR,
-            "legend_font_family": TITLE_FONT,
-            "legend_font_size": LEGEND_FONT_SIZE,
-            "legend_bgcolor": "rgba(0,0,0,0)",
-        }
+        template="plotly_white",
+        font_family=FONT,
+        hoverlabel_font_family=FONT,
+        plot_bgcolor=BG_COLOR,
+        paper_bgcolor=BG_COLOR,
+        legend_font_family=TITLE_FONT,
+        legend_font_size=LEGEND_FONT_SIZE,
+        legend_bgcolor="rgba(0,0,0,0)",
+        margin={"l": 0, "r": 0, "t": 5, "b": 5},
     )
     fig.update_xaxes(title=x_title)
     fig.update_yaxes(title=y_title)
