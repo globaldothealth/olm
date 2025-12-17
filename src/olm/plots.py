@@ -716,11 +716,11 @@ def plot_wordcloud(df: pd.DataFrame, term_values: dict[str: int]):
 
     # Configure other layout
     fig.update_layout(
-        height=img_height * scale_factor,
+        # height=img_height * scale_factor,
         margin={"l": 0, "r": 0, "t": 5, "b": 5},
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
-        width=img_width * scale_factor,
+        # width=img_width * scale_factor,
     )
 
     return fig

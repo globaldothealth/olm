@@ -293,14 +293,6 @@ section::before{
     img {
         max-height: 100px;
     }
-    tr{
-        td{
-                svg {fill: #ff6756;}
-        }
-        .is0{
-            svg {fill: #0e7569;}
-        }
-    }
     h3{
         margin-bottom: 0px;
     }
@@ -318,4 +310,22 @@ section::before{
 }
 .fill-red{
     fill: red;
+}
+.toc-title{
+    margin-top: 30px;
+    margin-bottom: 5px;
+    font-size: 18px;
+    font-weight: 700;
+}
+.toc-list{
+    margin-top: 0px;
+    font-size: 16px;
+    font-weight: 400;
+}
+.table-wrapper {
+  position:relative;
+}
+.table-scroll {
+  max-width: calc(100vw);
+  overflow:auto;
 }
