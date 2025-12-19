@@ -97,6 +97,8 @@ plots:
       diarrhoea: 1,
       fatigue: 1
     }
+    total_term_count: 29
+    y_label: 'Symptom Type'
   table/exposure_over_states_confirmed:
     case_status_value: 'confirmed'
     groupby_col: 'Location_Admin1'
@@ -110,8 +112,11 @@ plots:
     groupby_col: 'Location_Admin1'
     groupby_col_name: 'State'
     change_since_last_report: { }
-  figure/new_cases_weekly:
+  figure/trailing_case_count:
     date_col: Date_confirmation
+    trailing_time_in_days: 7
+    x_label: 'Date of confirmation'
+    y_label: 'Weekly trailing case count'
   figure/bar_genomics:
   figure/bar_age_gender:
 

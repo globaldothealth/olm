@@ -33,11 +33,31 @@ from .theme import (
     BG_COLOR,
     FG_COLOR,
     GRID_COLOR,
+    LEGEND_GB_COLOR,
 )
 
 REGEX_DATE = r"^202\d-[0,1]\d-[0-3]\d"
 
 pd.options.mode.chained_assignment = None
+
+standard_plot_layout = {
+    'plot_bgcolor': BG_COLOR,
+    'font_family': FONT,
+    'legend_font_family': TITLE_FONT,
+    'legend_font_size': LEGEND_FONT_SIZE,
+    'paper_bgcolor': BG_COLOR,
+    'hoverlabel_font_family': FONT,
+    'legend_bgcolor': LEGEND_GB_COLOR,
+    'title_font_color': FG_COLOR,
+    'title_font_family': TITLE_FONT,
+}
+
+standard_axis_layout = {
+    'title_font_family': TITLE_FONT,
+    'gridcolor': GRID_COLOR,
+    'linecolor': GRID_COLOR,
+    'title_font_color': FG_COLOR
+}
 
 
 def get_aggregate(
@@ -269,6 +289,7 @@ def plot_timeseries_location_status(
             col=cur_col,
         )
     fig.update_yaxes(
+        **standard_axis_layout,
         range=[
             0,
             max(
@@ -277,20 +298,10 @@ def plot_timeseries_location_status(
             )
             + 1,
         ],
-        gridcolor=GRID_COLOR,
         zerolinecolor="#d0d0d0",
     )
-    fig.update_xaxes(
-        gridcolor=GRID_COLOR,
-    )
-    fig.update_layout(
-        plot_bgcolor=BG_COLOR,
-        font_family=FONT,
-        paper_bgcolor=BG_COLOR,
-        hoverlabel_font_family=FONT,
-        legend_font_family=TITLE_FONT,
-        legend_font_size=LEGEND_FONT_SIZE,
-    )
+    fig.update_xaxes(**standard_axis_layout)
+    fig.update_layout(**standard_plot_layout)
     for annotation in fig["layout"]["annotations"]:
         annotation["font"] = {
             "family": TITLE_FONT,
@@ -326,27 +337,18 @@ def plot_epicurve(
             )
 
     fig.update_xaxes(
+        **standard_axis_layout,
         title_text=title,
-        title_font_family=TITLE_FONT,
-        title_font_color=FG_COLOR,
-        gridcolor=GRID_COLOR,
     )
 
     fig.update_yaxes(
+        **standard_axis_layout,
         title_text="Cumulative cases" if cumulative else "Cases",
-        title_font_family=TITLE_FONT,
-        title_font_color=FG_COLOR,
-        gridcolor=GRID_COLOR,
         zeroline=False,
     )
     fig.update_layout(
-        plot_bgcolor=BG_COLOR,
-        font_family=FONT,
-        paper_bgcolor=BG_COLOR,
-        hoverlabel_font_family=FONT,
-        legend_font_family=TITLE_FONT,
-        legend_font_size=LEGEND_FONT_SIZE,
-        margin={"l": 0, "r": 0, "t": 5, "b": 5},
+        **standard_plot_layout,
+        margin={"l": 0, "r": 0, "t": 0, "b": 0},
     )
 
     return fig
@@ -370,27 +372,17 @@ def plot_delay_distribution(
         color_discrete_sequence=[PRIMARY_COLOR],
     )
     fig.update_layout(
-        plot_bgcolor=BG_COLOR,
-        paper_bgcolor=BG_COLOR,
-        font_family=FONT,
+        **standard_plot_layout,
         title=index,
-        title_font_color=FG_COLOR,
-        title_font_family=TITLE_FONT,
-        hoverlabel_font_family=FONT,
         bargap=0.2,
         margin={"l": 0, "r": 0, "t": 5, "b": 5},
     )
     fig.update_xaxes(
-        title_font_family=TITLE_FONT,
-        gridcolor=GRID_COLOR,
-        linecolor=GRID_COLOR,
-        title_font_color=FG_COLOR,
+        **standard_axis_layout,
         linewidth=3,
     )
     fig.update_yaxes(
-        title_font_family=TITLE_FONT,
-        title_font_color=FG_COLOR,
-        gridcolor=GRID_COLOR,
+        **standard_axis_layout,
         showline=False,
     )
 
@@ -413,27 +405,20 @@ def plot_age_gender(df: pd.DataFrame):
     nearest = int(((max_binval // 5) + 1) * 5)
     ticks = np.linspace(-nearest, nearest, 2 * nearest + 1).astype(int)
 
-    fig.update_yaxes(title="Age", title_font_family=TITLE_FONT, gridcolor=GRID_COLOR)
+    fig.update_yaxes(**standard_axis_layout, title="Age")
     fig.update_xaxes(
+        **standard_axis_layout,
         range=[-nearest, nearest],
         tickvals=ticks,
         ticktext=list(map(abs, ticks)),
         title="Counts",
-        title_font_family=TITLE_FONT,
-        gridcolor=GRID_COLOR,
-        title_font_color=FG_COLOR,
         zeroline=False,
     )
     fig.update_layout(
+        **standard_plot_layout,
         barmode="overlay",
         bargap=0.1,
         template="plotly_white",
-        font_family=FONT,
-        hoverlabel_font_family=FONT,
-        plot_bgcolor=BG_COLOR,
-        paper_bgcolor=BG_COLOR,
-        legend_font_family=TITLE_FONT,
-        legend_font_size=LEGEND_FONT_SIZE,
         margin={"l": 0, "r": 0, "t": 5, "b": 5},
     )
 
@@ -473,26 +458,19 @@ def plot_data_availability(df: pd.DataFrame):
     column_count = len(y)
 
     fig = go.Figure()
-    fig.update_yaxes(title="Variable", title_font_family=TITLE_FONT, gridcolor=GRID_COLOR, dtick=1)
+    fig.update_yaxes(**standard_axis_layout, title="Variable", dtick=1)
     fig.update_xaxes(
+        **standard_axis_layout,
         tickvals=np.linspace(0., row_count, num=10 + 1),
         ticktext=list(map(lambda t: f'{t / 10 * 100}%', range(11))),
         title="Percentage of available data",
-        title_font_family=TITLE_FONT,
-        gridcolor=GRID_COLOR,
-        title_font_color=FG_COLOR,
         zeroline=False,
     )
     fig.update_layout(
+        **standard_plot_layout,
         barmode="overlay",
         bargap=0.1,
         template="plotly_white",
-        font_family=FONT,
-        hoverlabel_font_family=FONT,
-        plot_bgcolor=BG_COLOR,
-        paper_bgcolor=BG_COLOR,
-        legend_font_family=TITLE_FONT,
-        legend_font_size=LEGEND_FONT_SIZE,
         height=250 + column_count * 15,  # Scale the height depending on how many columns are in the dataframe
         margin={"l": 0, "r": 0, "t": 5, "b": 5},
     )
@@ -518,35 +496,28 @@ def plot_data_availability(df: pd.DataFrame):
     return fig
 
 
-def plot_term_frequency(df: pd.DataFrame, term_column: str, term_values: dict[str: int]):
-    # Get term occurrences and metadata
-    terms = (','.join(df[df[term_column].notnull()][term_column].tolist())).split(',')
+# TODO Ideally we would want the term frequency plot to generate automatically from the dataset
+#      due to complex preprocessing for Avian Influenza 2024 we need to extract it manually
+def plot_term_frequency(_: pd.DataFrame, term_column: str, term_values: dict[str, int], total_term_count: int,
+                        y_label: str):
     y = list(term_values.keys())
-    term_occurrences = Counter(list(map(str.lstrip, terms)))
-    term_occurrences = pd.Series(data=term_occurrences, index=y)
-    row_count = len(df.index)
+    term_occurrences = pd.Series(data=term_values, index=y)
 
     fig = go.Figure()
-    fig.update_yaxes(title="Symptom Type", title_font_family=TITLE_FONT, gridcolor=GRID_COLOR, dtick=1)
+    fig.update_yaxes(**standard_axis_layout, title=y_label, dtick=1)
     fig.update_xaxes(
-        tickvals=np.linspace(0., row_count, num=10 + 1),
+        **standard_axis_layout,
+        tickvals=np.linspace(0., total_term_count, num=10 + 1),
         ticktext=list(map(lambda t: f'{t / 10 * 100}%', range(11))),
         title=f"Term frequency in {term_column}",
-        title_font_family=TITLE_FONT,
-        gridcolor=GRID_COLOR,
-        title_font_color=FG_COLOR,
         zeroline=False,
     )
+
     fig.update_layout(
+        **standard_plot_layout,
         barmode="overlay",
         bargap=0.1,
         template="plotly_white",
-        font_family=FONT,
-        hoverlabel_font_family=FONT,
-        plot_bgcolor=BG_COLOR,
-        paper_bgcolor=BG_COLOR,
-        legend_font_family=TITLE_FONT,
-        legend_font_size=LEGEND_FONT_SIZE,
         height=250 + len(y) * 15,
         margin={"l": 0, "r": 0, "t": 5, "b": 5},
     )
@@ -562,8 +533,10 @@ def plot_term_frequency(df: pd.DataFrame, term_column: str, term_values: dict[st
             marker={"color": PRIMARY_COLOR},
         )
     )
+
+    # Update to show percentage on hover
     fig.update_traces(
-        customdata=list(map(lambda c: round(c / row_count * 100, 1), term_occurrences)),
+        customdata=list(map(lambda c: round(c / total_term_count * 100, 1), term_occurrences)),
         hovertemplate="<br>".join([
             "%{y} : %{customdata}%",
         ])
@@ -572,98 +545,13 @@ def plot_term_frequency(df: pd.DataFrame, term_column: str, term_values: dict[st
     return fig
 
 
-### PROTOTYPE NOT IN USE
-def plot_epicurve_interactive(df: pd.DataFrame, dropdown_column: str, palette: list[str] = PALETTE):
-    df_confirmed = df.loc[df['Case_status'] == 'confirmed']
-    df_probable = df.loc[df['Case_status'] == 'probable']
-    values_confirmed = non_null_unique(df_confirmed['Contact_animal_species'])
-    values_probable = non_null_unique(df_probable['Contact_animal_species'])
-    data_confirmed = get_epicurve(df_confirmed, 'Date_entry', 'Contact_animal_species', values_confirmed,
-                                  cumulative=True)
-    data_probable = get_epicurve(df_probable, 'Date_entry', 'Contact_animal_species', values_probable, cumulative=True)
-
-    fig = go.Figure()
-
-    for idx, value in enumerate(values_confirmed):
-        if value in data_confirmed.columns:
-            fig.add_trace(
-                go.Scatter(
-                    x=data_confirmed.index,
-                    y=data_confirmed[value],
-                    name=value,
-                    line_color=palette[idx],
-                    line_width=3,
-                ),
-            )
-
-    fig.update_xaxes(
-        title_text="Date of Entry",
-        title_font_family=TITLE_FONT,
-        title_font_color=FG_COLOR,
-        gridcolor=GRID_COLOR,
-    )
-
-    fig.update_yaxes(
-        title_text="Cumulative cases" if True else "Cases",
-        title_font_family=TITLE_FONT,
-        title_font_color=FG_COLOR,
-        gridcolor=GRID_COLOR,
-        zeroline=False,
-    )
-    fig.update_layout(
-        plot_bgcolor=BG_COLOR,
-        font_family=FONT,
-        paper_bgcolor=BG_COLOR,
-        hoverlabel_font_family=FONT,
-        legend_font_family=TITLE_FONT,
-        legend_font_size=LEGEND_FONT_SIZE,
-        margin={"l": 0, "r": 0, "t": 5, "b": 5},
-    )
-
-    buttons = list([dict(
-        args=[
-            {
-                'y': [data_confirmed[value_confirmed] for value_confirmed in values_confirmed],
-                'x': [data_confirmed.index],
-            }
-        ],
-        label="Confirmed",
-        method="restyle"
-    ),
-        dict(
-            args=[
-                {
-                    'y': [data_probable[value_probable] for value_probable in values_probable],
-                    'x': [data_probable.index],
-                }
-            ],
-            label="Probable",
-            method="restyle"
-        )
-    ])
-
-    fig.update_layout(
-        updatemenus=[
-            go.layout.Updatemenu(
-                buttons=buttons,
-                direction="down",
-                pad={"r": 10, "t": 10},
-                showactive=True,
-                x=-0.25,
-                xanchor="left",
-                y=1,
-                yanchor="top"
-            ),
-        ]
-    )
-
-    return fig
-
-
-def plot_wordcloud(df: pd.DataFrame, term_values: dict[str: int]):
+# TODO Ideally we would want the wordcloud to generate automatically from the dataset
+#      due to complex preprocessing for Avian Influenza 2024 we need to extract it manually
+def plot_wordcloud(_: pd.DataFrame, term_values: dict[str, float]):
     # Constants
     img_width = 1600
     img_height = 800
+    # we use scaling to generate higher resolution image and make it fit in smaller container while maintaining resolution
     scale_factor = 0.5
 
     wordcloud = WordCloud(
@@ -692,14 +580,13 @@ def plot_wordcloud(df: pd.DataFrame, term_values: dict[str: int]):
         visible=False,
         range=[0, img_width * scale_factor]
     )
-
     fig.update_yaxes(
         visible=False,
         range=[0, img_height * scale_factor],
         scaleanchor="x"
     )
 
-    # Add image
+    # Add image to plotly canvas
     fig.add_layout_image(
         dict(
             x=0,
@@ -714,18 +601,15 @@ def plot_wordcloud(df: pd.DataFrame, term_values: dict[str: int]):
             source=wordcloud.to_image())
     )
 
-    # Configure other layout
     fig.update_layout(
-        # height=img_height * scale_factor,
-        margin={"l": 0, "r": 0, "t": 5, "b": 5},
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)',
-        # width=img_width * scale_factor,
+        **standard_plot_layout,
+        margin={"l": 0, "r": 0, "t": 0, "b": 0},
     )
 
     return fig
 
 
+# TODO make this table reusable
 def table_exposure(df: pd.DataFrame, case_status_value: str, groupby_col: str, groupby_col_name: str,
                    change_since_last_report: dict[str, int]):
     cattle_column = 'Exposure from Commercial Cattle'
@@ -754,24 +638,25 @@ def table_exposure(df: pd.DataFrame, case_status_value: str, groupby_col: str, g
 
     # Reorder dataframe columns
     table = table.loc[:,
-            [groupby_col_name, cattle_column, poultry_column, other_column, unknown_column, total_column,
-             change_column]]
+    [groupby_col_name, cattle_column, poultry_column, other_column, unknown_column, total_column,
+     change_column]]
 
     # Replace float values with int and fill empty cells with zeros
     pd.options.display.float_format = '{:,.0f}'.format
     return table.fillna(int(0)).to_html(index=False)
 
 
-def plot_new_cases_weekly(df: pd.DataFrame, date_col: str, palette: list[str] = PALETTE):
+def plot_trailing_case_count(df: pd.DataFrame, date_col: str, trailing_time_in_days: int, x_label: str, y_label: str,
+                             palette: list[str] = PALETTE):
     fig = go.Figure()
     date_and_count = df[date_col].value_counts().sort_index()
     x = date_and_count.index
     y = date_and_count.values
 
-    # For each of the case occurrences propagate values for the next 7 days
+    # For each of the case occurrences propagate values for the next "trailing_time_in_days" days
     weekly = {}
     for x_idx in range(len(list(x))):
-        for i in range(7):
+        for i in range(trailing_time_in_days):
             date = x[x_idx] + timedelta(i)
             if date in weekly:
                 weekly[date] += int(y[x_idx])
@@ -779,18 +664,13 @@ def plot_new_cases_weekly(df: pd.DataFrame, date_col: str, palette: list[str] = 
                 weekly[date] = int(y[x_idx])
 
     fig.add_trace(go.Scatter(x=list(weekly.keys()), y=list(weekly.values()), line_color=palette[0], line_width=3))
-    fig.update_yaxes(title="Weekly trailing case count", title_font_family=TITLE_FONT, gridcolor=GRID_COLOR)
-    fig.update_xaxes(title="Date of confirmation", title_font_family=TITLE_FONT, gridcolor=GRID_COLOR)
+    fig.update_yaxes(**standard_axis_layout, title=x_label)
+    fig.update_xaxes(**standard_axis_layout, title=y_label)
     fig.update_layout(
+        **standard_plot_layout,
         barmode="overlay",
         bargap=0.1,
         template="plotly_white",
-        font_family=FONT,
-        hoverlabel_font_family=FONT,
-        plot_bgcolor=BG_COLOR,
-        paper_bgcolor=BG_COLOR,
-        legend_font_family=TITLE_FONT,
-        legend_font_size=LEGEND_FONT_SIZE,
         margin={"l": 0, "r": 0, "t": 5, "b": 5},
     )
     return fig
@@ -832,13 +712,7 @@ def stacked_barchart(df, y_axis, color_column, x_title, y_title, palette: list[s
     fig = px.bar(df, y=y_axis, color=color_column, orientation='h', color_discrete_sequence=palette)
     fig.update_layout(
         template="plotly_white",
-        font_family=FONT,
-        hoverlabel_font_family=FONT,
-        plot_bgcolor=BG_COLOR,
-        paper_bgcolor=BG_COLOR,
-        legend_font_family=TITLE_FONT,
-        legend_font_size=LEGEND_FONT_SIZE,
-        legend_bgcolor="rgba(0,0,0,0)",
+        **standard_plot_layout,
         margin={"l": 0, "r": 0, "t": 5, "b": 5},
     )
     fig.update_xaxes(title=x_title)

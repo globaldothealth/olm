@@ -20,10 +20,9 @@ from ..plots import (
     plot_age_gender,
     plot_bar_age_gender,
     plot_epicurve,
-    plot_epicurve_interactive,
     plot_data_availability,
     plot_delay_distribution,
-    plot_new_cases_weekly,
+    plot_trailing_case_count,
     plot_bar_genomics,
     plot_term_frequency,
     plot_timeseries_location_status,
@@ -58,8 +57,7 @@ plot_bar_age_gender,
     plot_data_availability,
     plot_delay_distribution,
     plot_epicurve,
-    plot_epicurve_interactive,
-    plot_new_cases_weekly,
+    plot_trailing_case_count,
     plot_bar_genomics,
     plot_term_frequency,
     plot_timeseries_location_status,
@@ -109,8 +107,8 @@ def get_plot_method(key: str) -> str | None:
         return "plot_term_frequency"
     if key.startswith("table/exposure"):
         return "table_exposure"
-    if key.startswith("figure/new_cases_weekly"):
-        return "plot_new_cases_weekly"
+    if key.startswith("figure/trailing_case_count"):
+        return "plot_trailing_case_count"
     if key.startswith("figure/bar_genomics"):
         return "plot_bar_genomics"
     return None
