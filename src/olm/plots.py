@@ -609,43 +609,6 @@ def plot_wordcloud(_: pd.DataFrame, term_values: dict[str, float]):
     return fig
 
 
-# TODO make this table reusable
-def table_exposure(df: pd.DataFrame, case_status_value: str, groupby_col: str, groupby_col_name: str,
-                   change_since_last_report: dict[str, int]):
-    cattle_column = 'Exposure from Commercial Cattle'
-    poultry_column = 'Exposure from Commercial Poultry'
-    other_column = 'Other Animal Exposure'
-    unknown_column = 'Exposure Source Unknown'
-    total_column = 'Total'
-    change_column = 'Change Since Last Report'
-
-    # Extract details for exposure source over location
-    df = df[df['Case_status'] == case_status_value]
-    total = df[groupby_col].value_counts()
-    cattle = df[df['Contact_animal_species'] == 'Cow'][groupby_col].value_counts()
-    poultry = df[(df['Contact_animal'] == 'COMMERCIAL') & (df['Contact_animal_species'] == 'Poultry')][
-        groupby_col].value_counts()
-    other = df[df['Contact_animal'] == 'BACKYARD'][groupby_col].value_counts()
-    unknown = df[df['Contact_animal'].isna()][groupby_col].value_counts()
-
-    # Generate dataframe
-    table = pd.DataFrame({groupby_col_name: total.index, total_column: total.values})
-    table[cattle_column] = table[groupby_col_name].map(cattle)
-    table[poultry_column] = table[groupby_col_name].map(poultry)
-    table[other_column] = table[groupby_col_name].map(other)
-    table[unknown_column] = table[groupby_col_name].map(unknown)
-    table[change_column] = table[groupby_col_name].map(change_since_last_report)
-
-    # Reorder dataframe columns
-    table = table.loc[:,
-    [groupby_col_name, cattle_column, poultry_column, other_column, unknown_column, total_column,
-     change_column]]
-
-    # Replace float values with int and fill empty cells with zeros
-    pd.options.display.float_format = '{:,.0f}'.format
-    return table.fillna(int(0)).to_html(index=False)
-
-
 def plot_trailing_case_count(df: pd.DataFrame, date_col: str, trailing_time_in_days: int, x_label: str, y_label: str,
                              palette: list[str] = PALETTE):
     fig = go.Figure()
@@ -654,16 +617,17 @@ def plot_trailing_case_count(df: pd.DataFrame, date_col: str, trailing_time_in_d
     y = date_and_count.values
 
     # For each of the case occurrences propagate values for the next "trailing_time_in_days" days
-    weekly = {}
+    trailing_data = {}
     for x_idx in range(len(list(x))):
         for i in range(trailing_time_in_days):
             date = x[x_idx] + timedelta(i)
-            if date in weekly:
-                weekly[date] += int(y[x_idx])
+            if date in trailing_data:
+                trailing_data[date] += int(y[x_idx])
             else:
-                weekly[date] = int(y[x_idx])
+                trailing_data[date] = int(y[x_idx])
 
-    fig.add_trace(go.Scatter(x=list(weekly.keys()), y=list(weekly.values()), line_color=palette[0], line_width=3))
+    fig.add_trace(
+        go.Scatter(x=list(trailing_data.keys()), y=list(trailing_data.values()), line_color=palette[0], line_width=3))
     fig.update_yaxes(**standard_axis_layout, title=x_label)
     fig.update_xaxes(**standard_axis_layout, title=y_label)
     fig.update_layout(
@@ -674,38 +638,6 @@ def plot_trailing_case_count(df: pd.DataFrame, date_col: str, trailing_time_in_d
         margin={"l": 0, "r": 0, "t": 5, "b": 5},
     )
     return fig
-
-
-def plot_bar_genomics(df: pd.DataFrame):
-    color_column = "Animal Exposure"
-    y_axis = "Genomics_Genotype"
-
-    df = df[df[y_axis].notnull()]
-
-    # Genomics plot specific
-    df[color_column] = df["Contact_animal"] + ' ' + df["Contact_animal_species"]
-    df = df.replace({color_column: {
-        'COMMERCIAL Cow': "Cattle",
-        "COMMERCIAL Poultry": "Poultry",
-        "BACKYARD Birds": "Other",
-        "BACKYARD Poultry": "Other"
-    }})
-
-    return stacked_barchart(df, y_axis, color_column, "Case Count", "Genomics Genotype")
-
-
-def plot_bar_age_gender(df: pd.DataFrame):
-    color_column = "Gender"
-    y_axis = "Age"
-
-    df = df[df[y_axis].notnull()]
-
-    # Age-Gender plot specific
-    df[color_column] = df[color_column].fillna(value="unknown")
-    df = df.infer_objects(copy=False).replace('>65', '>=18')  # Person above 65 years of age is also older than 18
-    df = df.sort_values(by=[color_column])
-
-    return stacked_barchart(df, y_axis, color_column, "Case Count", "Age Group")
 
 
 def stacked_barchart(df, y_axis, color_column, x_title, y_title, palette: list[str] = PALETTE):
