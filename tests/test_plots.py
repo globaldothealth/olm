@@ -39,11 +39,11 @@ EXPECTED_TIMESERIES_LOCATION_STATUS = """Date_onset_estimated,daily_confirmed,da
 
 
 @pytest.mark.parametrize(
-    "column,expected_delay_series",
-    [("Date_death", [4, 8, 6, 6]), ("Date_of_first_consult", [6, 4, 2])],
+    "target_column,expected_delay_series,onset_column",
+    [("Date_death", [4, 8, 6, 6], 'Date_onset'), ("Date_of_first_consult", [6, 4, 2], 'Date_onset')],
 )
-def test_get_delays(column, expected_delay_series):
-    assert list(get_delays(DATA, column).dt.days) == expected_delay_series
+def test_get_delays(target_column, expected_delay_series, onset_column):
+    assert list(get_delays(DATA, target_column, onset_column).dt.days) == expected_delay_series
 
 
 def test_aggregate():
@@ -111,6 +111,7 @@ def test_get_counts():
         "n_suspected": 0,
         "date": "2023-04-04",
         "pc_valid_age_gender": 100,
+        "n_dead": 4,
     }
 
 

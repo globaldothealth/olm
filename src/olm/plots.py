@@ -180,26 +180,29 @@ def get_epicurve(
     return epicurve.cumsum() if cumulative else epicurve
 
 
-def get_counts(df: pd.DataFrame, date_col: str, static_counts: dict[str, int]) -> dict[str, int]:
+def get_counts(df: pd.DataFrame, date_col: str, static_counts: dict[str, int] = {}) -> dict[str, int]:
     status = df.Case_status.value_counts()
     confirmed = df[df.Case_status == "confirmed"]
-    location_admin1 = df['Location_Admin1']
     outcome = df['Outcome']
-    occupation = df[df.Case_status == "confirmed"]['Occupation'].dropna()
-    return {
+    counts = {
         "n_confirmed": int(status.confirmed),
         "n_probable": int(status.get("probable", 0)),
         "n_suspected": int(status.get("suspected", 0)),
-        "n_unique_states": len(list(location_admin1.value_counts())),
-        "n_dead": outcome.value_counts()['death'],
-        "n_farm_workers_infected": sum('Farm Worker' in s for s in occupation.values),
-        "date": str(df[~pd.isna(df[date_col])][date_col].max()),
+        "n_dead": int(outcome.value_counts()['death']),
+        "date": df[~pd.isna(df[date_col])][date_col].max().strftime('%Y-%m-%d'),
         "pc_valid_age_gender": percentage_occurrence(
             confirmed,
             (~confirmed.Age.isna()) & (~confirmed.Gender.isna()),
         ),
         **static_counts,
     }
+    if 'Location_Admin1' in df.columns:
+        location_admin1 = df['Location_Admin1']
+        counts["n_unique_states"] = len(list(location_admin1.value_counts())),
+    if 'Occupation' in df.columns:
+        occupation = df[df.Case_status == "confirmed"]['Occupation'].dropna()
+        counts["n_farm_workers_infected"] = sum('Farm Worker' in s for s in occupation.values)
+    return counts
 
 
 def get_timeseries_location_status(
