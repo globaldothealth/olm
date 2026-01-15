@@ -254,6 +254,24 @@ def get_timeseries_location_status(
     return timeseries.reset_index(names="Date_onset_estimated")
 
 
+def get_trailing_case_count(df: pd.DataFrame, date_col: str, trailing_time_in_days: int):
+    date_and_count = df[date_col].value_counts().sort_index()
+    x = date_and_count.index
+    y = date_and_count.values
+
+    # For each of the case occurrences propagate values for the next "trailing_time_in_days" days
+    trailing_data = {}
+    for x_idx in range(len(list(x))):
+        for i in range(trailing_time_in_days):
+            date = x[x_idx] + timedelta(i)
+            date = date.strftime("%Y-%m-%d")
+            if date in trailing_data:
+                trailing_data[date] += int(y[x_idx])
+            else:
+                trailing_data[date] = int(y[x_idx])
+    return trailing_data
+
+
 def plot_timeseries_location_status(
         df: pd.DataFrame, admin_column: str, columns: int = 3
 ):
@@ -554,7 +572,8 @@ def plot_wordcloud(_: pd.DataFrame, term_values: dict[str, float]):
     # Constants
     img_width = 1600
     img_height = 800
-    # we use scaling to generate higher resolution image and make it fit in smaller container while maintaining resolution
+    # we use scaling to generate higher resolution image and make it fit in smaller container
+    # while maintaining resolution
     scale_factor = 0.5
 
     wordcloud = WordCloud(
@@ -614,21 +633,9 @@ def plot_wordcloud(_: pd.DataFrame, term_values: dict[str, float]):
 
 def plot_trailing_case_count(df: pd.DataFrame, date_col: str, trailing_time_in_days: int, x_label: str, y_label: str,
                              palette: list[str] = PALETTE):
+    trailing_data = get_trailing_case_count(df, date_col, trailing_time_in_days)
+
     fig = go.Figure()
-    date_and_count = df[date_col].value_counts().sort_index()
-    x = date_and_count.index
-    y = date_and_count.values
-
-    # For each of the case occurrences propagate values for the next "trailing_time_in_days" days
-    trailing_data = {}
-    for x_idx in range(len(list(x))):
-        for i in range(trailing_time_in_days):
-            date = x[x_idx] + timedelta(i)
-            if date in trailing_data:
-                trailing_data[date] += int(y[x_idx])
-            else:
-                trailing_data[date] = int(y[x_idx])
-
     fig.add_trace(
         go.Scatter(x=list(trailing_data.keys()), y=list(trailing_data.values()), line_color=palette[0], line_width=3))
     fig.update_yaxes(**standard_axis_layout, title=x_label)
