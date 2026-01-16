@@ -17,13 +17,13 @@ from ..plots import (
     get_aggregate,
     get_countries_with_status,
     get_countries_with_anyof_statuses,
-    plot_age_gender,
     plot_epicurve,
+    plot_timeseries_location_status,
+    plot_age_gender,
     plot_data_availability,
     plot_delay_distribution,
     plot_trailing_case_count,
     plot_term_frequency,
-    plot_timeseries_location_status,
     plot_wordcloud,
 )
 
@@ -40,8 +40,8 @@ from ..util import (
 )
 from ..types import LintResult, RowError
 from ..sources import source_databutton, source_google_sheet
-from .mpox2024 import mpox_2024_aggregate
 from .avian_influenza import avian_influenza_age_gender, avian_influenza_genomics, avian_influenza_exposure
+from .mpox2024 import mpox_2024_aggregate
 
 REPORT_BUCKET = "reports.global.health"
 OUTBREAK_SPECIFIC_METHODS = [mpox_2024_aggregate, avian_influenza_age_gender, avian_influenza_genomics,
@@ -109,7 +109,6 @@ def get_plot_method(key: str) -> str | None:
     # For Outbreak specific methods we just need to propagate the name
     method_name = key.split("/")[-1]
     return next((m for m in METHOD if method_name.startswith(m)), None)
-
 
 
 def read_includes(outbreak: str, date: datetime.date) -> dict[str, Any]:

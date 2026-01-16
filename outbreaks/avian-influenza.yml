@@ -30,31 +30,10 @@ plots:
     title: Date of confirmation
     date_col: Date_confirmation
     groupby_col: Case_status
-  #  figure/epicurve_interactive:
-  #    dropdown_column: Case_status
-  #  figure/epicurve_location_state_status:
-  #    title: State distribution
-  #    date_col: Date_confirmation
-  #    groupby_col: Location_Admin1
-  #  figure/epicurve_location_county_status:
-  #    title: County distribution
-  #    date_col: Date_confirmation
-  #    groupby_col: Location_Admin2
   figure/epicurve_contact_animal:
     title: Contact animal
     date_col: Date_confirmation
     groupby_col: Contact_animal_species
-  #  figure/age_gender:
-  #  figure/delay_distribution_consult:
-  #    col: Date_confirmation
-  #    title: Delay to consultation from onset
-  #    index: A
-  #    max_delay_days: 20
-  #  figure/delay_distribution_death:
-  #    col: Date_death
-  #    title: Delay to death from onset
-  #    index: B
-  #    max_delay_days: 20
   figure/data_availability:
   figure/wordcloud:
     term_values: {

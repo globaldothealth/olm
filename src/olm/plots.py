@@ -8,10 +8,10 @@ import pandas as pd
 import numpy as np
 from dateutil.parser import ParserError
 import plotly.graph_objects as go
+import plotly.express as px
 
 from plotly.subplots import make_subplots
 from wordcloud import WordCloud
-import plotly.express as px
 from collections import Counter
 from datetime import timedelta
 
@@ -33,7 +33,7 @@ from .theme import (
     BG_COLOR,
     FG_COLOR,
     GRID_COLOR,
-    LEGEND_GB_COLOR,
+    LEGEND_BG_COLOR,
 )
 
 REGEX_DATE = r"^202\d-[0,1]\d-[0-3]\d"
@@ -47,7 +47,7 @@ standard_plot_layout = {
     'legend_font_size': LEGEND_FONT_SIZE,
     'paper_bgcolor': BG_COLOR,
     'hoverlabel_font_family': FONT,
-    'legend_bgcolor': LEGEND_GB_COLOR,
+    'legend_bgcolor': LEGEND_BG_COLOR,
     'title_font_color': FG_COLOR,
     'title_font_family': TITLE_FONT,
 }
