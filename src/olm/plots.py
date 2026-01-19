@@ -3,6 +3,7 @@ Library of plots used in most outbreaks
 """
 
 import logging
+from typing import Any
 
 import pandas as pd
 import numpy as np
@@ -255,6 +256,17 @@ def get_timeseries_location_status(
 
 
 def get_trailing_case_count(df: pd.DataFrame, date_col: str, trailing_time_in_days: int):
+    """Returns trailing case count
+
+    Parameters
+    ----------
+    df
+        Data from which trailing case count is obtained
+    date_col
+        Date column to use
+    trailing_time_in_days
+        How many days cases will trail on chart
+    """
     date_and_count = df[date_col].value_counts().sort_index()
     x = date_and_count.index
     y = date_and_count.values
@@ -473,6 +485,13 @@ def plot_age_gender(df: pd.DataFrame):
 
 
 def plot_data_availability(df: pd.DataFrame):
+    """Creates wordcloud visualization
+
+    Parameters
+    ----------
+    df
+        Data from which column availability is obtained
+    """
     # Get metadata (column names, count, row count)
     y = df.columns.values
     row_count = len(df.index)
@@ -519,8 +538,21 @@ def plot_data_availability(df: pd.DataFrame):
 
 # TODO Ideally we would want the term frequency plot to generate automatically from the dataset
 #      due to complex preprocessing for Avian Influenza 2024 we need to extract it manually
-def plot_term_frequency(_: pd.DataFrame, term_column: str, term_values: dict[str, int], total_term_count: int,
+def plot_term_frequency(_: pd.DataFrame, term_column: str, term_values: dict[str, int], total_entry_count: int,
                         y_label: str):
+    """Creates wordcloud visualization
+
+    Parameters
+    ----------
+    term_column
+        Name of term column containing terms
+    term_values
+        Terms and their cardinality for wordcloud visualization
+    total_entry_count
+        Number of all entries that are used to calculate word frequency
+    y_label
+        Y axis label
+    """
     y = list(term_values.keys())
     term_occurrences = pd.Series(data=term_values, index=y)
 
@@ -528,7 +560,7 @@ def plot_term_frequency(_: pd.DataFrame, term_column: str, term_values: dict[str
     fig.update_yaxes(**standard_axis_layout, title=y_label, dtick=1)
     fig.update_xaxes(
         **standard_axis_layout,
-        tickvals=np.linspace(0., total_term_count, num=10 + 1),
+        tickvals=np.linspace(0., total_entry_count, num=10 + 1),
         ticktext=list(map(lambda t: f'{t / 10 * 100}%', range(11))),
         title=f"Term frequency in {term_column}",
         zeroline=False,
@@ -557,7 +589,7 @@ def plot_term_frequency(_: pd.DataFrame, term_column: str, term_values: dict[str
 
     # Update to show percentage on hover
     fig.update_traces(
-        customdata=list(map(lambda c: round(c / total_term_count * 100, 1), term_occurrences)),
+        customdata=list(map(lambda c: round(c / total_entry_count * 100, 1), term_occurrences)),
         hovertemplate="<br>".join([
             "%{y} : %{customdata}%",
         ])
@@ -569,6 +601,13 @@ def plot_term_frequency(_: pd.DataFrame, term_column: str, term_values: dict[str
 # TODO Ideally we would want the wordcloud to generate automatically from the dataset
 #      due to complex preprocessing for Avian Influenza 2024 we need to extract it manually
 def plot_wordcloud(_: pd.DataFrame, term_values: dict[str, float]):
+    """Creates wordcloud visualization
+
+    Parameters
+    ----------
+    term_values
+        Terms and their cardinality for wordcloud visualization
+    """
     # Constants
     img_width = 1600
     img_height = 800
@@ -633,6 +672,23 @@ def plot_wordcloud(_: pd.DataFrame, term_values: dict[str, float]):
 
 def plot_trailing_case_count(df: pd.DataFrame, date_col: str, trailing_time_in_days: int, x_label: str, y_label: str,
                              palette: list[str] = PALETTE):
+    """Creates trailing case count plot
+
+    Parameters
+    ----------
+    df
+        Data from which trailing case count is obtained
+    date_col
+        Date column to use
+    trailing_time_in_days
+        How many days cases will trail on chart
+    x_label
+        X axis label
+    y_label
+        Y axis label
+    palette
+        Color palette for plot
+    """
     trailing_data = get_trailing_case_count(df, date_col, trailing_time_in_days)
 
     fig = go.Figure()
@@ -650,14 +706,32 @@ def plot_trailing_case_count(df: pd.DataFrame, date_col: str, trailing_time_in_d
     return fig
 
 
-def stacked_barchart(df, y_axis, color_column, x_title, y_title, palette: list[str] = PALETTE):
+def stacked_barchart(df: pd.DataFrame, y_axis: Any, color_column: str, x_label: str, y_label: str,
+                     palette: list[str] = PALETTE):
+    """Creates stacked bar chart plot
+
+    Parameters
+    ----------
+    df
+        Data from which epicurve is obtained
+    y_axis
+        Values for Y axis
+    color_column
+        Column name used in the plot for bar color
+    x_label
+        X axis label
+    y_label
+        Y axis label
+    palette
+        Color palette for plot
+    """
     fig = px.bar(df, y=y_axis, color=color_column, orientation='h', color_discrete_sequence=palette)
     fig.update_layout(
         template="plotly_white",
         **standard_plot_layout,
         margin={"l": 0, "r": 0, "t": 5, "b": 5},
     )
-    fig.update_xaxes(title=x_title)
-    fig.update_yaxes(title=y_title)
+    fig.update_xaxes(title=x_label)
+    fig.update_yaxes(title=y_label)
     fig.update_traces(hoverinfo="skip", hovertemplate=None)
     return fig

@@ -76,7 +76,7 @@ plots:
       diarrhoea: 1,
       fatigue: 1
     }
-    total_term_count: 29
+    total_entry_count: 29
     y_label: 'Symptom Type'
   table/avian_influenza_exposure_confirmed:
     case_status_value: 'confirmed'
