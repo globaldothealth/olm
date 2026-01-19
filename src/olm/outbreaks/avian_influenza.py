@@ -1,4 +1,4 @@
-"Mpox 2024 outbreak specific functions"
+"Avian Influenza outbreak specific functions"
 
 import pandas as pd
 

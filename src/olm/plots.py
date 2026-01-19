@@ -13,7 +13,6 @@ import plotly.express as px
 
 from plotly.subplots import make_subplots
 from wordcloud import WordCloud
-from collections import Counter
 from datetime import timedelta
 
 from .util import (
@@ -129,7 +128,7 @@ def get_age_bin_data(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def get_delays(
-        df: pd.DataFrame, target_col: str, onset_col: str = "Date_confirmation"
+        df: pd.DataFrame, target_col: str, onset_col: str = "Date_onset"
 ) -> pd.Series:
     both = df[
         ~pd.isna(df[target_col])
@@ -189,7 +188,7 @@ def get_counts(df: pd.DataFrame, date_col: str, static_counts: dict[str, int] = 
         "n_confirmed": int(status.confirmed),
         "n_probable": int(status.get("probable", 0)),
         "n_suspected": int(status.get("suspected", 0)),
-        "n_dead": int(outcome.value_counts()['death']),
+        "n_dead": int(outcome.value_counts().get("death", 0)),
         "date": df[~pd.isna(df[date_col])][date_col].max().strftime('%Y-%m-%d'),
         "pc_valid_age_gender": percentage_occurrence(
             confirmed,
