@@ -40,12 +40,13 @@ from ..util import (
 )
 from ..types import LintResult, RowError
 from ..sources import source_databutton, source_google_sheet
-from .avian_influenza import avian_influenza_age_gender, avian_influenza_genomics, avian_influenza_exposure
+from .avian_influenza import plot_avian_influenza_age_gender, plot_avian_influenza_genomics, \
+    table_avian_influenza_exposure
 from .mpox2024 import mpox_2024_aggregate
 
 REPORT_BUCKET = "reports.global.health"
-OUTBREAK_SPECIFIC_METHODS = [mpox_2024_aggregate, avian_influenza_age_gender, avian_influenza_genomics,
-                             avian_influenza_exposure]
+OUTBREAK_SPECIFIC_METHODS = [mpox_2024_aggregate, plot_avian_influenza_age_gender, plot_avian_influenza_genomics,
+                             table_avian_influenza_exposure]
 ALLOWED_METHODS = OUTBREAK_SPECIFIC_METHODS + [
     get_counts,
     get_aggregate,
@@ -74,7 +75,8 @@ HEADER = (TEMPLATES / "_header.html").read_text()
 FOOTER = (TEMPLATES / "_footer.html").read_text()
 
 TABLE_POSTPROCESSORS = {"rename_columns"}
-REQUIRED_OUTBREAK_ATTRIBUTES = {"id", "description", "name"}
+REQUIRED_OUTBREAK_ATTRIBUTES = {"id", "description", "name", "display_name", "update_number", "reporting_period",
+                                "event_classification", "primary_data_sources"}
 METHOD = {f.__name__: f for f in ALLOWED_METHODS}
 
 
@@ -84,30 +86,7 @@ def render_figure(fig, key: str) -> str:
 
 def get_plot_method(key: str) -> str | None:
     "Preset mappings of figure keys to plot methods"
-    if key.startswith("figure/bar_age_gender"):
-        return "plot_bar_age_gender"
-    if key.startswith("figure/epicurve_interactive"):
-        return "plot_epicurve_interactive"
-    if key.startswith("figure/epicurve"):
-        return "plot_epicurve"
-    if key == "figure/age_gender":
-        return "plot_age_gender"
-    if key.startswith("figure/delay_distribution"):
-        return "plot_delay_distribution"
-    if key.startswith("figure/data_availability"):
-        return "plot_data_availability"
-    if key.startswith("figure/wordcloud"):
-        return "plot_wordcloud"
-    if key.startswith("figure/term_frequency"):
-        return "plot_term_frequency"
-    if key.startswith("table/exposure"):
-        return "table_exposure"
-    if key.startswith("figure/trailing_case_count"):
-        return "plot_trailing_case_count"
-    if key.startswith("figure/bar_genomics"):
-        return "plot_bar_genomics"
-    # For Outbreak specific methods we just need to propagate the name
-    method_name = key.split("/")[-1]
+    method_name = key.replace("figure/", "plot_").replace("table/", "table_")
     return next((m for m in METHOD if method_name.startswith(m)), None)
 
 

@@ -5,7 +5,7 @@ import pandas as pd
 from ..plots import stacked_barchart
 
 
-def avian_influenza_age_gender(df: pd.DataFrame) -> pd.DataFrame:
+def plot_avian_influenza_age_gender(df: pd.DataFrame) -> pd.DataFrame:
     color_column = "Gender"
     y_axis = "Age"
 
@@ -17,7 +17,7 @@ def avian_influenza_age_gender(df: pd.DataFrame) -> pd.DataFrame:
     df = df.sort_values(by=[color_column])
     return stacked_barchart(df, y_axis, color_column, "Case Count", "Age Group")
 
-def avian_influenza_genomics(df: pd.DataFrame) -> pd.DataFrame:
+def plot_avian_influenza_genomics(df: pd.DataFrame) -> pd.DataFrame:
     color_column = "Animal Exposure"
     y_axis = "Genomics_Genotype"
 
@@ -35,8 +35,8 @@ def avian_influenza_genomics(df: pd.DataFrame) -> pd.DataFrame:
     return stacked_barchart(df, y_axis, color_column, "Case Count", "Genomics Genotype")
 
 
-def avian_influenza_exposure(df: pd.DataFrame, case_status_value: str, groupby_col: str, groupby_col_name: str,
-                   change_since_last_report: dict[str, int]):
+def table_avian_influenza_exposure(df: pd.DataFrame, case_status_value: str, groupby_col: str, groupby_col_name: str,
+                                   change_since_last_report: dict[str, int]):
     cattle_column = 'Exposure from Commercial Cattle'
     poultry_column = 'Exposure from Commercial Poultry'
     other_column = 'Other Animal Exposure'

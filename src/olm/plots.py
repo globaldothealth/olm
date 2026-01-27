@@ -1,7 +1,7 @@
 """
 Library of plots used in most outbreaks
 """
-
+import collections
 import logging
 from typing import Any
 
@@ -201,7 +201,7 @@ def get_counts(df: pd.DataFrame, date_col: str, static_counts: dict[str, int] = 
         counts["n_unique_states"] = len(location_admin1.value_counts()),
     if 'Occupation' in df.columns:
         occupation = df[df.Case_status == "confirmed"]['Occupation'].dropna()
-        counts["n_farm_workers_infected"] = sum('Farm Worker' in s for s in occupation.values)
+        counts["n_farm_workers_infected"] = sum('farm worker' in ov.lower() for ov in occupation.values)
     return counts
 
 
@@ -271,15 +271,12 @@ def get_trailing_case_count(df: pd.DataFrame, date_col: str, trailing_time_in_da
     y = date_and_count.values
 
     # For each of the case occurrences propagate values for the next "trailing_time_in_days" days
-    trailing_data = {}
-    for x_idx in range(len(list(x))):
+    trailing_data = collections.defaultdict(int)
+    for x_idx in range(len(x)):
         for i in range(trailing_time_in_days):
             date = x[x_idx] + timedelta(i)
             date = date.strftime("%Y-%m-%d")
-            if date in trailing_data:
-                trailing_data[date] += int(y[x_idx])
-            else:
-                trailing_data[date] = int(y[x_idx])
+            trailing_data[date] += int(y[x_idx])
     return trailing_data
 
 
@@ -484,7 +481,7 @@ def plot_age_gender(df: pd.DataFrame):
 
 
 def plot_data_availability(df: pd.DataFrame):
-    """Creates wordcloud visualization
+    """Creates data availability plot horizontal barplot
 
     Parameters
     ----------
@@ -539,7 +536,7 @@ def plot_data_availability(df: pd.DataFrame):
 #      due to complex preprocessing for Avian Influenza 2024 we need to extract it manually
 def plot_term_frequency(_: pd.DataFrame, term_column: str, term_values: dict[str, int], total_entry_count: int,
                         y_label: str):
-    """Creates wordcloud visualization
+    """Creates term frequency horizontal barplot
 
     Parameters
     ----------
