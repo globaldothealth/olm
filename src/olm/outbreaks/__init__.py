@@ -40,7 +40,7 @@ from ..util import (
 )
 from ..types import LintResult, RowError
 from ..sources import source_databutton, source_google_sheet
-from .avian_influenza import plot_avian_influenza_age_gender, plot_avian_influenza_genomics, \
+from .avian_influenza_2024 import plot_avian_influenza_age_gender, plot_avian_influenza_genomics, \
     table_avian_influenza_exposure
 from .mpox2024 import mpox_2024_aggregate
 
