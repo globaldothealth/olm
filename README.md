@@ -33,8 +33,9 @@ arbitrary line lists. Outbreak reports are generated using
 
 ```shell
 $ uv run olm list
-marburg      Marburg 2023 [GHL2023.D11.1D60.1]
+marburg      Marburg 2023 Equatorial Guinea [GHL2023.D11.1D60.1]
 mpox-2024    Mpox 2024 [GHL2024.D11.1E71]
+avian-influenza-2024  Avian Influenza 2024-2025 Outbreak in the United States of America [GHL2024.D11.1E31]
 ```
 
 To generate a report for a particular outbreak, run

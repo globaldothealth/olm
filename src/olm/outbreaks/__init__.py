@@ -265,6 +265,20 @@ class Outbreak:
                         )
                     var.update(render_figure(METHOD[proc](df, **kwargs), plot_key))
 
+        # Load Markdown content into variables for template rendering.
+        # This allows curators to modify outbreak-specific content.
+        content_dir = (
+                OUTBREAKS_PATH
+                / "templates"
+                / f"{self.name}-content"
+        )
+        if content_dir.exists():
+            for file_path in content_dir.glob("*"):
+                if file_path.suffix == ".md":
+                    var[file_path.stem] = mistune.html(file_path.read_text())
+                else:
+                    var[file_path.stem] = file_path.read_text()
+
         report_data = chevron.render(template_text, var)
         Path(output_file).write_text(report_data)
         msg_ok("report", "wrote " + output_file)
