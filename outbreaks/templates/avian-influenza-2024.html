@@ -1,0 +1,314 @@
+<div class="header-links">
+    <div class="header-link">
+        <a href="https://global.health/outbreaks/avian-influenza-usa/" target="_blank">
+            <img src="https://dev-globalhealth.pantheonsite.io/wp-content/uploads/2025/07/avian-influenza-usa-1c-high-res.png">
+            <p>Outbreak Page</p>
+        </a>
+    </div>
+    <div class="header-link">
+        <a href="https://github.com/globaldothealth/outbreak-data/wiki/{{ id }}" target="_blank">
+            <img src="https://dev-globalhealth.pantheonsite.io/wp-content/uploads/2025/10/avian-influenza-data-dictionary.png">
+            <div><p>GitHub</p></div>
+        </a>
+    </div>
+    <div class="header-link">
+        <a href="https://map.influenza-2024.global.health/state" target="_blank">
+            <img src="https://dev-globalhealth.pantheonsite.io/wp-content/uploads/2025/08/avian-influenza-map-updated.png">
+            <p>Map</p>
+        </a>
+    </div>
+    <div class="header-link">
+        <a href="https://www.thinkglobalhealth.org/article/timeline-h5n1-bird-flu-outbreak-us" target="_blank">
+            <img src="https://dev-globalhealth.pantheonsite.io/wp-content/uploads/2025/03/avian-influenza-timeline.png">
+            <p>Timeline</p>
+        </a>
+    </div>
+</div>
+
+<p class="toc-title">Table of Contents:</p>
+<ol class="toc-list">
+    <li>
+        <a href="#summary">
+            <span class="toc-title">Summary</span>
+        </a>
+    </li>
+    <li>
+        <a href="#epidemiological-update">
+            <span class="toc-title">Epidemiological Update</span>
+        </a>
+    </li>
+    <li>
+        <a href="#context-background">
+            <span class="toc-title">Context & Background</span>
+        </a>
+    </li>
+    <li>
+        <a href="#data-analytical-notes">
+            <span class="toc-title">Data & Analytical Notes</span>
+        </a>
+    </li>
+    <li>
+        <a href="#curator-notes">
+            <span class="toc-title">Curator Notes</span>
+        </a>
+    </li>
+</ol>
+<section id="summary">
+    <h2>Summary</h2>
+    <p class="section-description">
+        This section is a summary of the current situation with key developments since the last update.
+    </p>
+
+    <p>
+        Highly pathogenic avian influenza (HPAI) outbreaks have primarily affected wild and domesticated bird
+        populations, with occasional human spillover. In 2024, the United States (U.S.) reported the first known
+        infection of H5N1 in dairy cattle, rapidly evolving into a multispecies outbreak among cattle and poultry
+        with spillover into humans.
+    </p>
+
+    <p>
+        Currently, there are <strong>{{ n_confirmed }} confirmed and {{ n_probable }} probable human cases in
+        {{n_unique_states}} states.</strong>
+    </p>
+
+    <br/>
+
+    <p class="table-caption">
+        <strong>Table 1. Outbreak Summary.</strong> Number of new and total cases of key epidemiological measures for
+        avian influenza. Data as of February 28, 2025.
+    </p>
+    <table class="summary-table">
+        <tr>
+            <td>
+                <h3>Human Confirmed Cases</h3><br/>
+                <img id="confirmed_img" src="images/confirmed.png">
+                <script>
+                    if ({{ n_new_confirmed }} > 0 ) {
+                     document.getElementById("confirmed_img").src = "images/confirmed_new.png";
+                    }
+                </script>
+                <br/>
+                <span class="outbreak-summary-values">New: <strong>{{ n_new_confirmed }}</strong> <br/>
+                    Total: <strong>{{ n_confirmed }}</strong></span>
+            </td>
+            <td>
+                <h3>Human Probable Cases</h3>
+                <br/>
+                <img id="probable_img" src="images/probable.png">
+                <script>
+                    if ({{ n_new_probable }} > 0 ) {
+                     document.getElementById("probable_img").src = "images/probable_new.png";
+                    }
+                </script>
+                <br/>
+                <span class="outbreak-summary-values">New: <strong>{{ n_new_probable }}</strong> <br/>
+                    Total: <strong>{{ n_probable }}</strong></span>
+            </td>
+            <td>
+                <h3>Human Deaths</h3><br/>
+                <img id="dead_img" src="images/dead.png">
+                <script>
+                    if ({{ n_new_dead }} > 0 ) {
+                     document.getElementById("dead_img").src = "images/dead_new.png";
+                    }
+                </script>
+                <br/>
+                <span class="outbreak-summary-values">New: <strong>{{ n_new_dead }}</strong><br/>
+                    Total: <strong>{{ n_dead }}</strong></span>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <h3>Farm Worker Infections</h3><br/>
+                <img id="farmer_img" src="images/farmer.png">
+                <script>
+                    if ({{ n_new_farm_workers_infected }} > 0 ) {
+                     document.getElementById("farmer_img").src = "images/farmer_new.png";
+                    }
+                </script>
+                <br/>
+                <span class="outbreak-summary-values">New: <strong>{{ n_new_farm_workers_infected }}</strong><br/>
+                    Total: <strong>{{ n_farm_workers_infected }}</strong></span>
+            </td>
+            <td>
+                <h3>Positive Commercial Poultry Farms</h3><br/>
+                <img id="poultry_img" src="images/poultry.png">
+                <script>
+                    if ({{ n_new_poultry_cases }} > 0 ) {
+                     document.getElementById("poultry_img").src = "images/poultry_new.png";
+                    }
+                </script>
+                <br/>
+                <span class="outbreak-summary-values">New: <strong>{{ n_new_poultry_cases }}</strong><br/>
+                    Total: <strong>{{ n_poultry_cases }}</strong><br/>
+                    # States Affected: <strong>{{ n_poultry_states_affected }}</strong><br/>
+                    # U.S. Territory: <strong>{{ n_poultry_us_territory }}</strong></span>
+            </td>
+            <td class="is{{ n_new_cattle_cases }}">
+                <h3>Positive Commercial Cattle Farms</h3><br/>
+                <img id="cattle_img" src="images/cattle.png">
+                <script>
+                    if ({{ n_new_cattle_cases }} > 0 ) {
+                     document.getElementById("cattle_img").src = "images/cattle_new.png";
+                    }
+                </script>
+                <br/>
+                <span class="outbreak-summary-values">New: <strong>{{ n_new_cattle_cases }}</strong> <br/>
+                    Total: <strong>{{ n_cattle_cases }}</strong> <br/>
+                        # States Affected: <strong>{{ n_cattle_states_affected }}</strong></span>
+            </td>
+        </tr>
+    </table>
+</section>
+
+<section id="epidemiological-update">
+    <h2>Epidemiological Update</h2>
+
+    <p class="section-description">
+        This section includes an epidemiological update with an epi curve, weekly case incidence, age and gender
+        distribution, data availability chart, symptoms figure, and genomic data.
+    </p>
+
+
+    <br/>
+
+    <p class="table-caption">
+        <strong>Table 2</strong>: Number of <strong>confirmed human cases</strong> by state and exposure source and
+        change in cases since the last report. Data as of February 28, 2025.
+    </p>
+    <div class="table-wrapper">
+        <div class="table-scroll">
+            {{{ avian_influenza_exposure_confirmed }}}
+        </div>
+    </div>
+
+
+    <br/>
+
+    <p class="table-caption">
+        <strong>Table 3</strong>: Number of <strong>probable human cases</strong> by state and exposure source and
+        change in cases since the last report. Data as of February 28, 2025.
+    </p>
+
+    <div class="table-wrapper">
+        <div class="table-scroll">
+            {{{ avian_influenza_exposure_probable }}}
+        </div>
+    </div>
+
+    <br/>
+    <br/>
+    <br/>
+
+    <figure>
+        <figcaption>
+            <strong>Epi curve.</strong> Number of cumulative confirmed cases by date confirmation. Data are primarily
+            collected from local and state health departments and CDC updates.
+        </figcaption>
+
+        {{{ epicurve }}}
+    </figure>
+
+    <br/>
+    <br/>
+
+    <figure>
+        <figcaption>
+            <strong>Weekly Case Incidence.</strong> Number of new confirmed cases reported in the past 7 days by date of
+            confirmation. Data are primarily collected from local and state health departments and CDC updates.
+        </figcaption>
+
+        {{{ trailing_case_count }}}
+    </figure>
+
+    <br/>
+    <br/>
+
+    <figure>
+        <figcaption><strong>Data Availability.</strong> Percentage of cases with data available for outbreak schema
+            variables. Data are derived from the G.h linelist.
+        </figcaption>
+
+        {{{ data_availability }}}
+    </figure>
+
+    <br/>
+    <br/>
+
+    <figure>
+        <figcaption>
+            <strong>Age and Gender Distribution.</strong> Number of cases by age and gender. Data are primarily
+            collected from local and state health department reports and CDC updates. 6% (n=4) of confirmed cases
+            include sufficient metadata to be included in this figure. When reported age ranges span multiple age
+            categories, counts are evenly distributed among the categories that capture the reported age range.
+        </figcaption>
+
+        {{{ avian_influenza_age_gender }}}
+    </figure>
+
+    <br/>
+    <br/>
+
+    <figure class="wordcloud">
+        <figcaption>
+            <strong>Symptoms.</strong> Percentage of confirmed and probable cases with symptom type. Data are primarily
+            collected from local and state health department reports and CDC updates. 82% (n=64) of cases include
+            sufficient metadata to be included in this figure.
+        </figcaption>
+
+        {{{wordcloud}}}
+        {{{term_frequency}}}
+    </figure>
+
+    <br/>
+    <br/>
+
+    <figure>
+        <figcaption>
+            <strong>Genomic Data.</strong> Number of confirmed cases by genotype. At this time, all confirmed human
+            cases are clade 2.3.3.4b. Data are primarily from CDC updates and GISAID. 13% (n=9) of confirmed cases
+            include sufficient metadata to be included in this figure.
+        </figcaption>
+        {{{avian_influenza_genomics}}}
+    </figure>
+
+    <p>
+        <strong>Case Definitions:</strong> According to <a
+            href="https://cdn.ymaws.com/www.cste.org/resource/resmgr/position_statements_files_2023/24-ID-09_Novel_Influenza_A.pdf"
+            target="_blank">Council of State and Territorial Epidemiologists (CSTE)</a> guidance. When a human case
+        tests positive for H5 at a public health laboratory and the result is confirmed by CDC testing, a case is
+        reported as confirmed. When a human case tests positive for H5 at a public health laboratory but testing at CDC
+        is not able to confirm H5 infection, a case is reported as probable.
+    </p>
+</section>
+
+<section id="context-background">
+    <h2>Context & Background</h2>
+
+    {{{context_background}}}
+</section>
+
+<section id="data-analytical-notes">
+    <h2>Data & Analytical Notes</h2>
+
+    {{{data_analytical_notes}}}
+</section>
+
+<section id="curator-notes">
+    <h2>Curator Notes</h2>
+
+    {{{curator_notes}}}
+</section>
+
+
+
+
+
+
+
+
+
+
+
+
+
