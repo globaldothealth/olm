@@ -40,7 +40,7 @@ from ..util import (
 )
 from ..types import LintResult, RowError
 from ..sources import source_databutton, source_google_sheet
-from .avian_influenza import plot_avian_influenza_age_gender, plot_avian_influenza_genomics, \
+from .avian_influenza_2024 import plot_avian_influenza_age_gender, plot_avian_influenza_genomics, \
     table_avian_influenza_exposure
 from .mpox2024 import mpox_2024_aggregate
 
@@ -264,6 +264,20 @@ class Outbreak:
                             f"No plotting function specified or inferred from plot key: {plot}"
                         )
                     var.update(render_figure(METHOD[proc](df, **kwargs), plot_key))
+
+        # Load Markdown content into variables for template rendering.
+        # This allows curators to modify outbreak-specific content.
+        content_dir = (
+                OUTBREAKS_PATH
+                / "templates"
+                / f"{self.name}-content"
+        )
+        if content_dir.exists():
+            for file_path in content_dir.glob("*"):
+                if file_path.suffix == ".md":
+                    var[file_path.stem] = mistune.html(file_path.read_text())
+                else:
+                    var[file_path.stem] = file_path.read_text()
 
         report_data = chevron.render(template_text, var)
         Path(output_file).write_text(report_data)
