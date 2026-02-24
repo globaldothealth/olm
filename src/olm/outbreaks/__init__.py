@@ -20,7 +20,11 @@ from ..plots import (
     plot_epicurve,
     plot_timeseries_location_status,
     plot_age_gender,
+    plot_data_availability,
     plot_delay_distribution,
+    plot_trailing_case_count,
+    plot_term_frequency,
+    plot_wordcloud,
 )
 
 import plotly.io
@@ -36,19 +40,26 @@ from ..util import (
 )
 from ..types import LintResult, RowError
 from ..sources import source_databutton, source_google_sheet
+from .avian_influenza import plot_avian_influenza_age_gender, plot_avian_influenza_genomics, \
+    table_avian_influenza_exposure
 from .mpox2024 import mpox_2024_aggregate
 
 REPORT_BUCKET = "reports.global.health"
-OUTBREAK_SPECIFIC_METHODS = [mpox_2024_aggregate]
+OUTBREAK_SPECIFIC_METHODS = [mpox_2024_aggregate, plot_avian_influenza_age_gender, plot_avian_influenza_genomics,
+                             table_avian_influenza_exposure]
 ALLOWED_METHODS = OUTBREAK_SPECIFIC_METHODS + [
     get_counts,
     get_aggregate,
     get_countries_with_status,
     get_countries_with_anyof_statuses,
-    plot_epicurve,
-    plot_timeseries_location_status,
     plot_age_gender,
+    plot_data_availability,
     plot_delay_distribution,
+    plot_epicurve,
+    plot_trailing_case_count,
+    plot_term_frequency,
+    plot_timeseries_location_status,
+    plot_wordcloud,
     # sources -------------------
     source_databutton,
     source_google_sheet,
@@ -64,21 +75,19 @@ HEADER = (TEMPLATES / "_header.html").read_text()
 FOOTER = (TEMPLATES / "_footer.html").read_text()
 
 TABLE_POSTPROCESSORS = {"rename_columns"}
-REQUIRED_OUTBREAK_ATTRIBUTES = {"id", "description", "name"}
+REQUIRED_OUTBREAK_ATTRIBUTES = {"id", "description", "name", "display_name", "update_number", "reporting_period",
+                                "event_classification", "primary_data_sources"}
 METHOD = {f.__name__: f for f in ALLOWED_METHODS}
 
 
 def render_figure(fig, key: str) -> str:
-    return {key: plotly.io.to_html(fig, include_plotlyjs=False, full_html=False)}
+    return {key: plotly.io.to_html(fig, include_plotlyjs=False, full_html=False, config={'displayModeBar': False})}
 
 
 def get_plot_method(key: str) -> str | None:
     "Preset mappings of figure keys to plot methods"
-    if key.startswith("figure/epicurve"):
-        return "plot_epicurve"
-    if key == "figure/age_gender":
-        return "plot_age_gender"
-    return None
+    method_name = key.replace("figure/", "plot_").replace("table/", "table_")
+    return next((m for m in METHOD if method_name.startswith(m)), None)
 
 
 def read_includes(outbreak: str, date: datetime.date) -> dict[str, Any]:
@@ -107,7 +116,7 @@ class Outbreak:
     def __init__(self, config: str, url: str | None = None):
         self.metadata = read_yaml(config)
         assert (
-            REQUIRED_OUTBREAK_ATTRIBUTES <= set(self.metadata.keys())
+                REQUIRED_OUTBREAK_ATTRIBUTES <= set(self.metadata.keys())
         ), f"All required attributes not present in YAML file: {REQUIRED_OUTBREAK_ATTRIBUTES}"
         self.schema = None
         self.name = Path(config).stem
@@ -115,12 +124,19 @@ class Outbreak:
 
         self.schema_url = self.metadata.get("schema")
         self.additional_date_columns = self.metadata.get("additional_date_columns", [])
+        self.display_name = self.metadata.get("display_name")
+        self.update_number = self.metadata.get("update_number")
+        self.reporting_period = self.metadata.get("reporting_period")
+        self.event_classification = self.metadata.get("event_classification")
+        self.primary_data_sources = self.metadata.get("primary_data_sources")
         self.url = self.metadata.get("url")
+        self.url_cattle = self.metadata.get("url_cattle")
+        self.url_poultry = self.metadata.get("url_poultry")
         self.plots = self.metadata.get("plots", {})
         if isinstance(self.schema_url, str):
             if (
-                self.schema_url.startswith("http")
-                and (res := requests.get(self.schema_url)).status_code == 200
+                    self.schema_url.startswith("http")
+                    and (res := requests.get(self.schema_url)).status_code == 200
             ):
                 self.schema = res.json()
             else:
@@ -131,7 +147,7 @@ class Outbreak:
             self.data = self.read(url)
 
     def read(
-        self, data_url: str | None = None, convert_dates: bool = True
+            self, data_url: str | None = None, convert_dates: bool = True
     ) -> pd.DataFrame:
         "Loads outbreak data from URL or path"
         data_url = data_url or self.url
@@ -167,10 +183,10 @@ class Outbreak:
         return LintResult(self.name, str(self.schema_url), len(errors) == 0, errors)
 
     def make_report(
-        self,
-        add_archive: bool = False,
-        output_bucket: str | None = None,
-        cloudfront_distribution: str | None = None,
+            self,
+            add_archive: bool = False,
+            output_bucket: str | None = None,
+            cloudfront_distribution: str | None = None,
     ):
         """Build epidemiological report
 
@@ -194,14 +210,19 @@ class Outbreak:
             raise ValueError("No data url specified")
         var = {
             "name": self.name,
+            "display_name": self.display_name,
             "description": self.metadata["description"],
             "id": self.metadata["id"],
             "published_date": str(date),
+            "update_number": self.update_number,
+            "reporting_period": self.reporting_period,
+            "event_classification": self.event_classification,
+            "primary_data_sources": self.primary_data_sources,
             "data_url": self.metadata.get("url", ""),
         }
         if add_archive:
             archives = get_archives_for_outbreak(self.name)
-            var["archives"] = [ {"link": a, "text": a.removesuffix(".html")} for a in archives]
+            var["archives"] = [{"link": a, "text": a.removesuffix(".html")} for a in archives]
         # read includes from outbreaks/<outbreak>/includes
         # each include file must be prefixed by date
         var.update(read_includes(self.name, datetime.datetime.utcnow().date()))
@@ -216,24 +237,28 @@ class Outbreak:
                     var.update(METHOD[plot_key](df, **kwargs))
                 case "table":
                     if (
-                        proc := plot_info[0] if plot_info else get_plot_method(plot)
+                            proc := plot_info[0] if plot_info else get_plot_method(plot)
                     ) is None:
                         raise ValueError(
                             f"No plotting function specified or inferred from plot key: {plot}"
                         )
-                    # drop post processors from kwargs
-                    proc_kwargs = {
-                        k: v for k, v in kwargs.items() if k not in TABLE_POSTPROCESSORS
-                    }
-                    table_data = METHOD[proc](df, **proc_kwargs)
-                    for post_processor in TABLE_POSTPROCESSORS & set(kwargs):
-                        table_data = METHOD[post_processor](
-                            table_data, kwargs[post_processor]
-                        )
-                    var[plot_key] = table_data.to_html(index=False)
+                    if plot_key.startswith('exposure_over_states'):
+                        var[plot_key] = METHOD[proc](df, **kwargs)
+                    else:
+
+                        # drop post processors from kwargs
+                        proc_kwargs = {
+                            k: v for k, v in kwargs.items() if k not in TABLE_POSTPROCESSORS
+                        }
+                        table_data = METHOD[proc](df, **proc_kwargs)
+                        for post_processor in TABLE_POSTPROCESSORS & set(kwargs):
+                            table_data = METHOD[post_processor](
+                                table_data, kwargs[post_processor]
+                            )
+                        var[plot_key] = table_data.to_html(index=False)
                 case "figure":
                     if (
-                        proc := plot_info[0] if plot_info else get_plot_method(plot)
+                            proc := plot_info[0] if plot_info else get_plot_method(plot)
                     ) is None:
                         raise ValueError(
                             f"No plotting function specified or inferred from plot key: {plot}"

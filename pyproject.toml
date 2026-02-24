@@ -17,6 +17,7 @@ dependencies = [
     "pyyaml>=6.0.2",
     "mistune>=3.0.2",
     "python-dotenv>=1.0.1",
+    "wordcloud>=1.9.4",
 ]
 scripts = { olm = "olm:main" }
 

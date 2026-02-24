@@ -1,0 +1,102 @@
+name: avian-influenza
+display_name: Avian Influenza
+id: GHL2024.D11.1E31
+description: Avian Influenza 2024-2025 Outbreak in the United States of America
+update_number: 1
+reporting_period: 2025-02-16 - 2025-02-22 (Week 8)
+event_classification: Zoonotic
+primary_data_sources: CDC, USDA, WOAH
+schema: https://raw.githubusercontent.com/globaldothealth/outbreak-schema/main/outbreak.schema.json
+url: https://avian-influenza-2024.s3.eu-central-1.amazonaws.com/latest.csv
+url_poultry: https://avian-influenza-2024.s3.eu-central-1.amazonaws.com/poultry/latest.csv
+url_cattle: https://avian-influenza-2024.s3.eu-central-1.amazonaws.com/cattle/latest.csv
+plots:
+  data/get_counts:
+    date_col: Date_confirmation
+    static_counts: {
+      n_new_confirmed: 2,
+      n_new_probable: 0,
+      n_new_dead: 0,
+      n_new_farm_workers_infected: 1,
+      n_new_poultry_cases: 18,
+      n_poultry_cases: 325,
+      n_poultry_states_affected: 37,
+      n_poultry_us_territory: 1,
+      n_new_cattle_cases: 4,
+      n_cattle_cases: 977,
+      n_cattle_states_affected: 17,
+    }
+  figure/epicurve:
+    title: Date of confirmation
+    date_col: Date_confirmation
+    groupby_col: Case_status
+  figure/epicurve_contact_animal:
+    title: Contact animal
+    date_col: Date_confirmation
+    groupby_col: Contact_animal_species
+  figure/data_availability:
+  figure/wordcloud:
+    term_values: {
+      pink_eye_conjunctivitis: 25,
+      watery_eyes: 17,
+      respiratory_symptoms: 9,
+      cough: 6,
+      fever: 6,
+      sore_throat: 5,
+      nasal_congestion: 5,
+      runny_nose: 4,
+      chills: 4,
+      upper_respiratory_tract: 2,
+      subconjunctival_hemorrhage: 1,
+      chest_pain: 1,
+      nausea: 1,
+      weakness: 1,
+      vomiting: 1,
+      diarrhoea: 1,
+      fatigue: 1
+    }
+  figure/term_frequency:
+    term_column: Symptoms
+    term_values: {
+      pink_eye_conjunctivitis: 25,
+      watery_eyes: 17,
+      respiratory_symptoms: 9,
+      cough: 6,
+      fever: 6,
+      sore_throat: 5,
+      nasal_congestion: 5,
+      runny_nose: 4,
+      chills: 4,
+      upper_respiratory_tract: 2,
+      subconjunctival_hemorrhage: 1,
+      chest_pain: 1,
+      nausea: 1,
+      weakness: 1,
+      vomiting: 1,
+      diarrhoea: 1,
+      fatigue: 1
+    }
+    total_entry_count: 29
+    y_label: 'Symptom Type'
+  table/avian_influenza_exposure_confirmed:
+    case_status_value: 'confirmed'
+    groupby_col: 'Location_Admin1'
+    groupby_col_name: 'State'
+    change_since_last_report: {
+      "Ohio": 1,
+      "Wyoming": 1
+    }
+  table/avian_influenza_exposure_probable:
+    case_status_value: 'probable'
+    groupby_col: 'Location_Admin1'
+    groupby_col_name: 'State'
+    change_since_last_report: { }
+  figure/trailing_case_count:
+    date_col: Date_confirmation
+    trailing_time_in_days: 7
+    x_label: 'Date of confirmation'
+    y_label: 'Weekly trailing case count'
+  figure/avian_influenza_genomics:
+  figure/avian_influenza_age_gender:
+
+
