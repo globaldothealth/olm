@@ -127,6 +127,7 @@ class Outbreak:
         self.display_name = self.metadata.get("display_name")
         self.update_number = self.metadata.get("update_number")
         self.reporting_period = self.metadata.get("reporting_period")
+        self.data_as_of = self.metadata.get("data_as_of")
         self.event_classification = self.metadata.get("event_classification")
         self.primary_data_sources = self.metadata.get("primary_data_sources")
         self.url = self.metadata.get("url")
@@ -216,6 +217,7 @@ class Outbreak:
             "published_date": str(date),
             "update_number": self.update_number,
             "reporting_period": self.reporting_period,
+            "data_as_of": self.data_as_of,
             "event_classification": self.event_classification,
             "primary_data_sources": self.primary_data_sources,
             "data_url": self.metadata.get("url", ""),
