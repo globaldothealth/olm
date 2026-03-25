@@ -20,17 +20,25 @@ def plot_avian_influenza_age_gender(df: pd.DataFrame) -> pd.DataFrame:
 def plot_avian_influenza_genomics(df: pd.DataFrame) -> pd.DataFrame:
     color_column = "Animal Exposure"
     y_axis = "Genomics_Genotype"
-
+    # print(df[y_axis])
+    # print(df['ID'])
     df = df[df[y_axis].notnull()]
+
+
 
     # Genomics plot specific
     df[color_column] = df["Contact_animal"] + ' ' + df["Contact_animal_species"]
+    print(df)
     df = df.replace({color_column: {
         'COMMERCIAL Cow': "Cattle",
         "COMMERCIAL Poultry": "Poultry",
         "BACKYARD Birds": "Other",
-        "BACKYARD Poultry": "Other"
+        "BACKYARD Poultry": "Other",
+            pd.NA: "Unknown",
+            None: "Unknown"
     }})
+    print(df[y_axis])
+    print(df[color_column])
 
     return stacked_barchart(df, y_axis, color_column, "Case Count", "Genomics Genotype")
 

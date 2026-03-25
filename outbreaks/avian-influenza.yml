@@ -10,20 +10,25 @@ schema: https://raw.githubusercontent.com/globaldothealth/outbreak-schema/main/o
 url: https://avian-influenza-2024.s3.eu-central-1.amazonaws.com/latest.csv
 url_poultry: https://avian-influenza-2024.s3.eu-central-1.amazonaws.com/poultry/latest.csv
 url_cattle: https://avian-influenza-2024.s3.eu-central-1.amazonaws.com/cattle/latest.csv
+data_as_of: February 22, 2025
 plots:
   data/get_counts:
     date_col: Date_confirmation
     static_counts: {
-      n_new_confirmed: 2,
+      n_new_confirmed: 1,
+      n_confirmed_states_affected: 13,
       n_new_probable: 0,
+      n_probable_states_affected: 4,
       n_new_dead: 0,
       n_new_farm_workers_infected: 1,
       n_new_poultry_cases: 18,
-      n_poultry_cases: 325,
-      n_poultry_states_affected: 37,
+      n_poultry_cases: 312,
+      n_poultry_cases_previous_week: 304,
+      n_poultry_states_affected: 36,
       n_poultry_us_territory: 1,
-      n_new_cattle_cases: 4,
-      n_cattle_cases: 977,
+      n_new_cattle_cases: 0,
+      n_cattle_cases: 973,
+      n_cattle_cases_previous_week: 973,
       n_cattle_states_affected: 17,
     }
   figure/epicurve:
@@ -84,7 +89,6 @@ plots:
     groupby_col_name: 'State'
     change_since_last_report: {
       "Ohio": 1,
-      "Wyoming": 1
     }
   table/avian_influenza_exposure_probable:
     case_status_value: 'probable'

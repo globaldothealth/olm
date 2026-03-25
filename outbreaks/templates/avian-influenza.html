@@ -75,7 +75,7 @@
 
     <p class="table-caption">
         <strong>Table 1. Outbreak Summary.</strong> Number of new and total cases of key epidemiological measures for
-        avian influenza. Data as of February 28, 2025.
+        avian influenza. Green icons indicate no new data during this reporting period. Data as of {{ data_as_of }}.
     </p>
     <table class="summary-table">
         <tr>
@@ -88,8 +88,11 @@
                     }
                 </script>
                 <br/>
-                <span class="outbreak-summary-values">New: <strong>{{ n_new_confirmed }}</strong> <br/>
-                    Total: <strong>{{ n_confirmed }}</strong></span>
+                <span class="outbreak-summary-values">
+                    New: <strong>{{ n_new_confirmed }}</strong> <br/>
+                    Total: <strong>{{ n_confirmed }}</strong> <br/>
+                    # States Affected: <strong>{{n_confirmed_states_affected}}</strong>
+                </span>
             </td>
             <td>
                 <h3>Human Probable Cases</h3>
@@ -101,8 +104,11 @@
                     }
                 </script>
                 <br/>
-                <span class="outbreak-summary-values">New: <strong>{{ n_new_probable }}</strong> <br/>
-                    Total: <strong>{{ n_probable }}</strong></span>
+                <span class="outbreak-summary-values">
+                    New: <strong>{{ n_new_probable }}</strong> <br/>
+                    Total: <strong>{{ n_probable }}</strong> <br/>
+                    # States Affected: <strong>{{n_probable_states_affected}}</strong>
+                </span>
             </td>
             <td>
                 <h3>Human Deaths</h3><br/>
@@ -113,8 +119,10 @@
                     }
                 </script>
                 <br/>
-                <span class="outbreak-summary-values">New: <strong>{{ n_new_dead }}</strong><br/>
-                    Total: <strong>{{ n_dead }}</strong></span>
+                <span class="outbreak-summary-values">
+                    New: <strong>{{ n_new_dead }}</strong><br/>
+                    Total: <strong>{{ n_dead }}</strong>
+                </span>
             </td>
         </tr>
         <tr>
@@ -127,8 +135,10 @@
                     }
                 </script>
                 <br/>
-                <span class="outbreak-summary-values">New: <strong>{{ n_new_farm_workers_infected }}</strong><br/>
-                    Total: <strong>{{ n_farm_workers_infected }}</strong></span>
+                <span class="outbreak-summary-values">
+                    New: <strong>{{ n_new_farm_workers_infected }}</strong><br/>
+                    Total: <strong>{{ n_farm_workers_infected }}</strong>
+                </span>
             </td>
             <td>
                 <h3>Positive Commercial Poultry Farms</h3><br/>
@@ -139,10 +149,14 @@
                     }
                 </script>
                 <br/>
-                <span class="outbreak-summary-values">New: <strong>{{ n_new_poultry_cases }}</strong><br/>
+                <span class="outbreak-summary-values">
+                    Week 7: <strong>{{ n_poultry_cases_previous_week }}</strong><br/>
+                    Week 8: <strong>{{ n_poultry_cases }}</strong><br/>
+                    <br/>
+                    New: <strong>{{ n_new_poultry_cases }}</strong><br/>
                     Total: <strong>{{ n_poultry_cases }}</strong><br/>
                     # States Affected: <strong>{{ n_poultry_states_affected }}</strong><br/>
-                    # U.S. Territory: <strong>{{ n_poultry_us_territory }}</strong></span>
+                    # Territory: <strong>{{ n_poultry_us_territory }}</strong></span>
             </td>
             <td class="is{{ n_new_cattle_cases }}">
                 <h3>Positive Commercial Cattle Farms</h3><br/>
@@ -153,9 +167,13 @@
                     }
                 </script>
                 <br/>
-                <span class="outbreak-summary-values">New: <strong>{{ n_new_cattle_cases }}</strong> <br/>
+                <span class="outbreak-summary-values">
+                    Week 7: <strong>{{ n_cattle_cases_previous_week }}</strong> <br/>
+                    Week 8: <strong>{{ n_cattle_cases }}</strong> <br/>
+                    <br/>
+                    New: <strong>{{ n_new_cattle_cases }}</strong> <br/>
                     Total: <strong>{{ n_cattle_cases }}</strong> <br/>
-                        # States Affected: <strong>{{ n_cattle_states_affected }}</strong></span>
+                    # States Affected: <strong>{{ n_cattle_states_affected }}</strong></span>
             </td>
         </tr>
     </table>
@@ -174,7 +192,7 @@
 
     <p class="table-caption">
         <strong>Table 2</strong>: Number of <strong>confirmed human cases</strong> by state and exposure source and
-        change in cases since the last report. Data as of February 28, 2025.
+        change in cases since the last report. Data as of {{ data_as_of }}.
     </p>
     <div class="table-wrapper">
         <div class="table-scroll">
@@ -187,7 +205,7 @@
 
     <p class="table-caption">
         <strong>Table 3</strong>: Number of <strong>probable human cases</strong> by state and exposure source and
-        change in cases since the last report. Data as of February 28, 2025.
+        change in cases since the last report. Data as of {{ data_as_of }}.
     </p>
 
     <div class="table-wrapper">
@@ -203,7 +221,7 @@
     <figure>
         <figcaption>
             <strong>Epi curve.</strong> Number of cumulative confirmed cases by date confirmation. Data are primarily
-            collected from local and state health departments and CDC updates.
+            collected from local and state health departments and CDC updates. Data as of {{ data_as_of }}.
         </figcaption>
 
         {{{ epicurve }}}
@@ -215,7 +233,8 @@
     <figure>
         <figcaption>
             <strong>Weekly Case Incidence.</strong> Number of new confirmed cases reported in the past 7 days by date of
-            confirmation. Data are primarily collected from local and state health departments and CDC updates.
+            confirmation. Data are primarily collected from local and state health departments and CDC updates. Data as
+            of {{ data_as_of }}.
         </figcaption>
 
         {{{ trailing_case_count }}}
@@ -226,7 +245,7 @@
 
     <figure>
         <figcaption><strong>Data Availability.</strong> Percentage of cases with data available for outbreak schema
-            variables. Data are derived from the G.h linelist.
+            variables. Data are derived from the G.h linelist. Data as of {{ data_as_of }}.
         </figcaption>
 
         {{{ data_availability }}}
@@ -239,8 +258,9 @@
         <figcaption>
             <strong>Age and Gender Distribution.</strong> Number of cases by age and gender. Data are primarily
             collected from local and state health department reports and CDC updates. 6% (n=4) of confirmed cases
-            include sufficient metadata to be included in this figure. When reported age ranges span multiple age
-            categories, counts are evenly distributed among the categories that capture the reported age range.
+            include sufficient metadata for age AND gender distribution. When reported age ranges span multiple age
+            categories, counts are evenly distributed among the categories that capture the reported age range. Data as
+            of {{ data_as_of }}.
         </figcaption>
 
         {{{ avian_influenza_age_gender }}}
@@ -253,7 +273,7 @@
         <figcaption>
             <strong>Symptoms.</strong> Percentage of confirmed and probable cases with symptom type. Data are primarily
             collected from local and state health department reports and CDC updates. 82% (n=64) of cases include
-            sufficient metadata to be included in this figure.
+            sufficient metadata to be included in this figure. Data as of {{ data_as_of }}.
         </figcaption>
 
         {{{wordcloud}}}
@@ -266,8 +286,9 @@
     <figure>
         <figcaption>
             <strong>Genomic Data.</strong> Number of confirmed cases by genotype. At this time, all confirmed human
-            cases are clade 2.3.3.4b. Data are primarily from CDC updates and GISAID. 13% (n=9) of confirmed cases
-            include sufficient metadata to be included in this figure.
+            cases where clade information is openly accessible are from clade 2.3.4.4.b (n=20). Subclade data are
+            available for 9 of those cases and are displayed in the figure, color coded to their source of exposure.
+            Data are primarily from CDC updates and GISAID. Data as of {{ data_as_of }}.
         </figcaption>
         {{{avian_influenza_genomics}}}
     </figure>

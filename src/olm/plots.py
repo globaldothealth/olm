@@ -198,7 +198,7 @@ def get_counts(df: pd.DataFrame, date_col: str, static_counts: dict[str, int] = 
     }
     if 'Location_Admin1' in df.columns:
         location_admin1 = df['Location_Admin1']
-        counts["n_unique_states"] = len(location_admin1.value_counts()),
+        counts["n_unique_states"] = len(location_admin1.value_counts())
     if 'Occupation' in df.columns:
         occupation = df[df.Case_status == "confirmed"]['Occupation'].dropna()
         counts["n_farm_workers_infected"] = sum('farm worker' in ov.lower() for ov in occupation.values)
