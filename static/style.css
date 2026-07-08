@@ -305,6 +305,9 @@ section::before{
         width: 100px;
     }
 }
+.without-border {
+    border: none;
+}
 @media print {
 
 }
@@ -328,4 +331,7 @@ section::before{
 .table-scroll {
   max-width: calc(100vw);
   overflow:auto;
+}
+img {
+    max-width: 100%;
 }

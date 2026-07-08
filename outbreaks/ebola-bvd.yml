@@ -1,0 +1,72 @@
+name: ebola-bvd
+display_name: Ebola BVD
+id: GHL2026.D11.1D60.00
+description: Ebola BVD
+update_number: 1
+reporting_period: Epidemiological Week 26 (June 28, 2026 - July 04, 2026)
+event_classification: Active
+primary_data_sources:
+data_as_of: July 4th 2026
+schema: https://raw.githubusercontent.com/globaldothealth/outbreak-schema/main/outbreak.schema.json
+report_end_date: 2026-07-04
+url: https://raw.githubusercontent.com/globaldothealth/outbreak-data/refs/heads/main/Ebola%20BVD/Data/Ebola%20BVD%202026%20linelist%20-%20PUBLIC%20VIEW.csv
+plots:
+  data/get_counts:
+    date_col: Date_confirmation
+    static_counts: {
+      n_new_confirmed: 0,
+      n_new_suspected: 0,
+      n_new_dead: 0
+    }
+  figure/epicurve:
+    title: Date of confirmation
+    date_col: Date_confirmation
+    groupby_col: Case_status
+    values:
+      - confirmed
+  figure/epicurve_drc:
+    title: Date of confirmation
+    date_col: Date_confirmation
+    groupby_col: Location_Admin0
+    values:
+      - 'Democratic Republic of the Congo'
+  figure/epicurve_uganda:
+    title: Date of confirmation
+    date_col: Date_confirmation
+    groupby_col: Location_Admin0
+    values:
+      - Uganda
+  figure/epicurve_dead:
+    title: Date of death
+    date_col: Date_death
+    groupby_col: Location_Admin0
+  figure/data_availability:
+  figure/trailing_case_count:
+    date_col: Date_confirmation
+    trailing_time_in_days: 7
+    x_label: 'Date of confirmation'
+    y_label: 'Weekly trailing case count'
+  figure/epicurve_by_health_zone:
+    title: Date of confirmation
+    date_col: Date_confirmation
+    groupby_col: 'Health zone'
+  figure/stacked_barchart_health_zone:
+    y_axis: 'Health zone'
+    color_column: 'Case_status'
+    x_label: 'Health zone'
+    y_label: 'Case status'
+  figure/stacked_barchart_admin0:
+    y_axis: 'Location_Admin0'
+    color_column: 'Case_status'
+    x_label: 'Country'
+    y_label: 'Case status'
+  figure/stacked_barchart_admin1:
+    y_axis: 'Location Admin1'
+    color_column: 'Case_status'
+    x_label: 'State/Province'
+    y_label: 'Case status'
+  html/country_counts:
+    last_report_date: 2026-06-27
+
+
+

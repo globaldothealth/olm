@@ -1,6 +1,11 @@
 name: mpox-2024
+display_name: Mpox 2024
 id: GHL2024.D11.1E71
 description: Mpox 2024
+update_number: 1
+reporting_period: no data
+event_classification: Human-to-human
+primary_data_sources: no data
 url: https://mpox-2024.s3.eu-central-1.amazonaws.com/latest.csv
 schema: https://raw.githubusercontent.com/globaldothealth/outbreak-schema/main/GHL2024.D11.1E71.schema.json
 plots:

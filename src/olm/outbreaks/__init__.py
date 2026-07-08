@@ -7,6 +7,7 @@ import warnings
 import datetime
 from pathlib import Path
 from typing import Any
+from urllib.error import HTTPError
 
 import chevron
 import requests
@@ -19,6 +20,8 @@ from ..plots import (
     get_countries_with_anyof_statuses,
     plot_epicurve,
     plot_timeseries_location_status,
+    html_country_counts,
+    plot_stacked_barchart,
     plot_age_gender,
     plot_data_availability,
     plot_delay_distribution,
@@ -56,6 +59,8 @@ ALLOWED_METHODS = OUTBREAK_SPECIFIC_METHODS + [
     plot_data_availability,
     plot_delay_distribution,
     plot_epicurve,
+    html_country_counts,
+    plot_stacked_barchart,
     plot_trailing_case_count,
     plot_term_frequency,
     plot_timeseries_location_status,
@@ -86,7 +91,7 @@ def render_figure(fig, key: str) -> str:
 
 def get_plot_method(key: str) -> str | None:
     "Preset mappings of figure keys to plot methods"
-    method_name = key.replace("figure/", "plot_").replace("table/", "table_")
+    method_name = key.replace("figure/", "plot_").replace("table/", "table_").replace("html/", "html_")
     return next((m for m in METHOD if method_name.startswith(m)), None)
 
 
@@ -127,6 +132,8 @@ class Outbreak:
         self.display_name = self.metadata.get("display_name")
         self.update_number = self.metadata.get("update_number")
         self.reporting_period = self.metadata.get("reporting_period")
+        self.report_end_date = self.metadata.get("report_end_date", "")
+        self.data_as_of = self.metadata.get("data_as_of", '')
         self.event_classification = self.metadata.get("event_classification")
         self.primary_data_sources = self.metadata.get("primary_data_sources")
         self.url = self.metadata.get("url")
@@ -144,7 +151,10 @@ class Outbreak:
         if url:
             self.url = url
         if self.url:
-            self.data = self.read(url)
+            try:
+                self.data = self.read(url)
+            except HTTPError:
+                self.data = None
 
     def read(
             self, data_url: str | None = None, convert_dates: bool = True
@@ -216,6 +226,7 @@ class Outbreak:
             "published_date": str(date),
             "update_number": self.update_number,
             "reporting_period": self.reporting_period,
+            "data_as_of": self.data_as_of,
             "event_classification": self.event_classification,
             "primary_data_sources": self.primary_data_sources,
             "data_url": self.metadata.get("url", ""),
@@ -227,6 +238,8 @@ class Outbreak:
         # each include file must be prefixed by date
         var.update(read_includes(self.name, datetime.datetime.utcnow().date()))
         df = read_csv(self.url, self.metadata.get("additional_date_columns", []))
+        if self.report_end_date:
+            df = df[df['Date_entry'] <= pd.Timestamp(self.report_end_date)]
         for plot in self.plots:
             plot_type, plot_key, *plot_info = plot.split("/")
             kwargs = self.plots[plot]
@@ -264,6 +277,9 @@ class Outbreak:
                             f"No plotting function specified or inferred from plot key: {plot}"
                         )
                     var.update(render_figure(METHOD[proc](df, **kwargs), plot_key))
+                case "html":
+                    if proc := plot_info[0] if plot_info else get_plot_method(plot):
+                        var[plot_key] = METHOD[proc](df, **kwargs)
 
         report_data = chevron.render(template_text, var)
         Path(output_file).write_text(report_data)

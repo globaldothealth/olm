@@ -188,7 +188,8 @@ def get_counts(df: pd.DataFrame, date_col: str, static_counts: dict[str, int] = 
         "n_confirmed": int(status.confirmed),
         "n_probable": int(status.get("probable", 0)),
         "n_suspected": int(status.get("suspected", 0)),
-        "n_dead": int(outcome.value_counts().get("death", 0)),
+        "n_dead": int(outcome.value_counts().get("death", 0)) or int(outcome.value_counts().get("Death", 0)),
+        "n_unique_countries": len(df["Location_Admin0"].unique()),
         "date": df[~pd.isna(df[date_col])][date_col].max().strftime('%Y-%m-%d'),
         "pc_valid_age_gender": percentage_occurrence(
             confirmed,
@@ -355,15 +356,26 @@ def plot_epicurve(
     fig = go.Figure()
     for idx, value in enumerate(values):
         if value in data.columns:
-            fig.add_trace(
-                go.Scatter(
-                    x=data.index,
-                    y=data[value],
-                    name=value,
-                    line_color=palette[idx],  # turn off for higher counts of elements
-                    line_width=3,
-                ),
-            )
+            if len(palette) < len(values):
+                fig.add_trace(
+                    go.Scatter(
+                        x=data.index,
+                        y=data[value],
+                        name=value,
+                        # line_color=palette[idx],  # turn off for higher counts of elements
+                        line_width=3,
+                    ),
+                )
+            else:
+                fig.add_trace(
+                    go.Scatter(
+                        x=data.index,
+                        y=data[value],
+                        name=value,
+                        line_color=palette[idx],  # turn off for higher counts of elements
+                        line_width=3,
+                    ),
+                )
 
     fig.update_xaxes(
         **standard_axis_layout,
@@ -489,7 +501,8 @@ def plot_data_availability(df: pd.DataFrame):
         Data from which column availability is obtained
     """
     # Get metadata (column names, count, row count)
-    y = df.columns.values
+    column_counts = df.count().sort_values(ascending=True)
+    y = column_counts.index.values
     row_count = len(df.index)
     column_count = len(y)
 
@@ -514,7 +527,7 @@ def plot_data_availability(df: pd.DataFrame):
     fig.add_trace(
         go.Bar(
             y=y,
-            x=df.count(),
+            x=column_counts,
             orientation="h",
             name="",
             hovertemplate=None,
@@ -523,7 +536,7 @@ def plot_data_availability(df: pd.DataFrame):
         )
     )
     fig.update_traces(
-        customdata=list(map(lambda c: round(c / row_count * 100, 1), df.count())),  # Completeness percentage
+        customdata=list(map(lambda c: round(c / row_count * 100, 1), column_counts)),  # Completeness percentage
         hovertemplate="<br>".join([
             "%{y} completeness: %{customdata}%",
         ])
@@ -700,6 +713,75 @@ def plot_trailing_case_count(df: pd.DataFrame, date_col: str, trailing_time_in_d
         margin={"l": 0, "r": 0, "t": 5, "b": 5},
     )
     return fig
+
+def plot_stacked_barchart(df: pd.DataFrame, y_axis: str, color_column: str, x_label: str, y_label: str):
+    """Creates stacked bar chart
+    Parameters
+    """
+    # group data by y_axis and color_column and sum the counts
+    df = df.copy()
+    df = df.groupby([y_axis, color_column]).size().reset_index(name='count')
+
+    order = (
+        df.groupby(y_axis)["count"]
+        .sum()
+        .sort_values(ascending=False)
+        .index
+        .tolist()
+    )
+
+    fig = px.bar(
+        df,
+        y='count',
+        x=y_axis,
+        color=color_column,
+        orientation='v',
+        color_discrete_sequence=PALETTE,
+        category_orders={y_axis: order},
+        log_x=False,
+    )
+    row_count = df[y_axis].nunique()
+    fig.update_layout(
+        template="plotly_white",
+        **standard_plot_layout,
+        # width=2500 + row_count * 15,
+        margin={"l": 0, "r": 0, "t": 5, "b": 5},
+
+    )
+    fig.update_xaxes(title=x_label)
+    fig.update_yaxes(title=y_label)
+    # fig.update_traces(hoverinfo="skip", hovertemplate=None)
+    return fig
+
+def html_country_counts(df: pd.DataFrame, last_report_date: str):
+    countries = df['Location_Admin0'].unique()
+    cc_html = ''
+    last_report_ts = pd.to_datetime(last_report_date, errors='coerce')
+    for country in countries:
+        country_df = df[df['Location_Admin0'] == country]
+        confirmed_count = len(country_df[country_df['Case_status'] == 'confirmed'])
+        date_confirmation = pd.to_datetime(country_df['Date_confirmation'], errors='coerce')
+        new_confirmed_mask = (country_df['Case_status'] == 'confirmed') & (date_confirmation > last_report_ts)
+        new_confirmed_count = int(new_confirmed_mask.sum())
+        confirmed_deaths_count = len(country_df[country_df['Outcome'] == 'Death'])
+        new_confirmed_deaths_mask = (country_df['Outcome'] == 'Death') & (date_confirmation > last_report_ts)
+        new_confirmed_deaths_count = int(new_confirmed_deaths_mask.sum())
+        confirmed_count_html = ('<td class="without-border">'
+                                '<h3>Confirmed Cases</h3><br/>'
+                                f'<img id="confirmed_img" src="images/confirmed{"_new" if new_confirmed_count > 0 else ""}.png">'
+                                '<br/>'
+                                f'<span class="outbreak-summary-values">New: <strong>{new_confirmed_count}</strong> <br/>Total: <strong>{confirmed_count}</strong></span>'
+                                '</td>')
+        confirmed_deaths_count_html = ('<td class="without-border">'
+                                '<h3>Confirmed Deaths</h3><br/>'
+                                f'<img id="confirmed_img" src="images/dead{"_new" if new_confirmed_deaths_count > 0 else ""}.png">'
+                                '<br/>'
+                                f'<span class="outbreak-summary-values">New: <strong>{new_confirmed_deaths_count}</strong> <br/>Total: <strong>{confirmed_deaths_count}</strong></span>'
+                                '</td>')
+        cc_html += f'<thead><td colspan=2 align="left"><h3>{country}</h3></td></thead><tr>{confirmed_count_html}{confirmed_deaths_count_html}</tr>'
+    return ('<table class="summary-table">' +
+            cc_html +
+            '</table>')
 
 
 def stacked_barchart(df: pd.DataFrame, y_axis: Any, color_column: str, x_label: str, y_label: str,

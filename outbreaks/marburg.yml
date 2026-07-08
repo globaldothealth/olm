@@ -1,6 +1,11 @@
 name: marburg
+display_name: Marburg 2023 Equatorial Guinea
 id: GHL2023.D11.1D60.1
 description: Marburg 2023 Equatorial Guinea
+update_number: 1
+reporting_period: no data
+event_classification: no data
+primary_data_sources: no data
 schema: https://raw.githubusercontent.com/globaldothealth/outbreak-schema/main/outbreak.schema.json
 plots:
   data/get_counts:
