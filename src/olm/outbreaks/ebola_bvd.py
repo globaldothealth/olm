@@ -1,72 +1,128 @@
-"Avian Influenza outbreak specific functions"
+"Ebola BVD outbreak specific functions"
 
 import pandas as pd
+import plotly.express as px
 
-from ..plots import stacked_barchart
+from ..plots import standard_plot_layout, PALETTE
 
+def html_ebola_bvd_country_counts(df: pd.DataFrame, last_report_date: str, drc_new_cases: int, drc_new_deaths: int):
+    """Generate HTML table of confirmed cases and deaths by country"""
+    countries = df['Location_Admin0'].unique()
+    last_report_ts = pd.to_datetime(last_report_date, errors='coerce')
+    print(last_report_ts)
 
-def plot_avian_influenza_age_gender(df: pd.DataFrame) -> pd.DataFrame:
-    color_column = "Gender"
-    y_axis = "Age"
+    def render_stat_cell(title: str, icon: str, new_count: int, total_count: int) -> str:
+        """Helper to render a stat cell with icon and counts"""
+        return (
+            '<td class="without-border">'
+            f'<h3>{title}</h3><br/>'
+            f'<img id="confirmed_img" src="images/{icon}{"_new" if new_count > 0 else ""}.png">'
+            '<br/>'
+            f'<span class="outbreak-summary-values">New: <strong>{new_count}</strong> <br/>Total: <strong>{total_count}</strong></span>'
+            '</td>'
+        )
 
-    df = df[df[y_axis].notnull()]
+    rows = []
+    for country in countries:
+        country_df = df[df['Location_Admin0'] == country]
+        confirmed = country_df[country_df['Case_status'] == 'confirmed']
 
-    # Age-Gender plot specific
-    df[color_column] = df[color_column].fillna(value="unknown")
-    df = df.infer_objects(copy=False).replace('>65', '>=18')  # Person above 65 years of age is also older than 18
-    df = df.sort_values(by=[color_column])
-    return stacked_barchart(df, y_axis, color_column, "Case Count", "Age Group")
+        # Calculate confirmed cases counts
+        date_confirmation = pd.to_datetime(confirmed['Date_confirmation'], errors='coerce')
+        new_confirmed_count = int((date_confirmation > last_report_ts).sum())
 
-def plot_avian_influenza_genomics(df: pd.DataFrame) -> pd.DataFrame:
-    color_column = "Animal Exposure"
-    y_axis = "Genomics_Genotype"
+        confirmed_count = len(confirmed)
 
-    df = df[df[y_axis].notnull()]
+        # Calculate confirmed deaths counts
+        confirmed_deaths_count = len(confirmed[confirmed['Outcome'] == 'Death'])
+        date_death = pd.to_datetime(country_df['Date_death'], errors='coerce')
+        new_confirmed_deaths_mask = (country_df['Outcome'] == 'Death') & (date_death > last_report_ts)
+        new_confirmed_deaths_count = int(new_confirmed_deaths_mask.sum())
 
-    # Genomics plot specific
-    df[color_column] = df["Contact_animal"] + ' ' + df["Contact_animal_species"]
-    df = df.replace({color_column: {
-        'COMMERCIAL Cow': "Cattle",
-        "COMMERCIAL Poultry": "Poultry",
-        "BACKYARD Birds": "Other",
-        "BACKYARD Poultry": "Other"
-    }})
+        # Use variable numbers for DRC
+        if country == "Democratic Republic of the Congo":
+            new_confirmed_count = drc_new_cases
+            new_confirmed_deaths_count = drc_new_deaths
 
-    return stacked_barchart(df, y_axis, color_column, "Case Count", "Genomics Genotype")
+        # Build row
+        cases_cell = render_stat_cell('Confirmed Cases', 'confirmed', new_confirmed_count, confirmed_count)
+        deaths_cell = render_stat_cell('Confirmed Deaths', 'dead', new_confirmed_deaths_count, confirmed_deaths_count)
+        row = f'<thead><td colspan=2 align="left"><h3>{country}</h3></td></thead><tr>{cases_cell}{deaths_cell}</tr>'
+        rows.append(row)
 
+    return '<table class="summary-table">' + ''.join(rows) + '</table>'
 
-def table_avian_influenza_exposure(df: pd.DataFrame, case_status_value: str, groupby_col: str, groupby_col_name: str,
-                                   change_since_last_report: dict[str, int]):
-    cattle_column = 'Exposure from Commercial Cattle'
-    poultry_column = 'Exposure from Commercial Poultry'
-    other_column = 'Other Animal Exposure'
-    unknown_column = 'Exposure Source Unknown'
-    total_column = 'Total'
-    change_column = 'Change Since Last Report'
+def plot_ebola_bvd_health_zone_barchart(df: pd.DataFrame):
+    """
+    Creates stacked bar chart of Ebola BVD cases by health zone and outcome, with health zones grouped by Location Admin1.
+    """
+    df = df.copy()
+    df = df[df["Location_Admin0"] == "Democratic Republic of the Congo"]
+    df = df[(df["Case_status"] == 'confirmed') | (df["Case_status"] == 'a ventiler')]
+    y_values = df['Health zone']
+    y_empty_mask = y_values.isna() | (y_values.astype(str).str.strip() == "")
+    df.loc[y_empty_mask, 'Health zone'] = "Other"
 
-    # Extract details for exposure source over location
-    df = df[df['Case_status'] == case_status_value]
-    total_count = df[groupby_col].value_counts()
-    additional_counts = [
-        {'column_name': cattle_column, 'data': df[df['Contact_animal_species'] == 'Cow'][groupby_col].value_counts()},
-        {'column_name': poultry_column,
-         'data': df[(df['Contact_animal'] == 'COMMERCIAL') & (df['Contact_animal_species'] == 'Poultry')][
-             groupby_col].value_counts()},
-        {'column_name': other_column, 'data': df[df['Contact_animal'] == 'BACKYARD'][groupby_col].value_counts()},
-        {'column_name': unknown_column, 'data': df[df['Contact_animal'].isna()][groupby_col].value_counts()},
-        {'column_name': change_column, 'data': change_since_last_report},
-    ]
+    color_values = df['Outcome']
+    replace_mask = (
+            color_values.isna()
+            | (color_values.astype(str).str.strip() == "")
+            | (color_values.astype(str).str.strip().str.lower() == "recovered")
+    )
+    df.loc[replace_mask, 'Outcome'] = "Confirmed case"
+    replace_mask2 = (color_values.astype(str).str.strip().str.lower() == "death")
+    df.loc[replace_mask2, 'Outcome'] = "Confirmed death"
 
-    # Generate dataframe
-    table = pd.DataFrame({groupby_col_name: total_count.index, total_column: total_count.values})
-    for additional_count in additional_counts:
-        table[additional_count['column_name']] = table[groupby_col_name].map(additional_count['data'])
+    death_as_case = df[df['Outcome'] == "Confirmed death"].copy()
+    death_as_case['Outcome'] = "Confirmed case"
+    df = pd.concat([df, death_as_case], ignore_index=True)
 
-    # Reorder dataframe columns
-    table = table.loc[
-        :, [groupby_col_name, cattle_column, poultry_column, other_column, unknown_column, total_column,
-            change_column]]
+    df = df.groupby(['Health zone', 'Location Admin1', 'Outcome']).size().reset_index(name='count')
+    combined_axis = f"Health zone (Location Admin 1)"
+    df[combined_axis] = df.apply(
+        lambda row: f"{row['Health zone']} ({row['Location Admin1']})", axis=1
+    )
 
-    # Replace float values with int and fill empty cells with zeros
-    pd.options.display.float_format = '{:,.0f}'.format
-    return table.fillna(int(0))
+    new_color_column = "Case status"
+    df = df.rename(columns={'Outcome': new_color_column})
+
+    order = (
+        df[df[new_color_column] == "Confirmed case"]
+        .sort_values("count", ascending=False)[combined_axis]
+        .tolist()
+    )
+    tick_text_map = {
+        row[combined_axis]: (
+            f"<b><i>{row['Health zone']}</i></b> ({row['Location Admin1']})"
+            if str(row['Health zone']).strip().lower() == "other"
+            else f"<b>{row['Health zone']}</b> ({row['Location Admin1']})"
+        )
+        for _, row in df[[combined_axis, 'Health zone', 'Location Admin1']].drop_duplicates().iterrows()
+    }
+
+    fig = px.bar(
+        df,
+        y='count',
+        x=combined_axis,
+        color=new_color_column,
+        orientation='v',
+        color_discrete_sequence=PALETTE,
+        category_orders={combined_axis: order},
+        log_x=False,
+    )
+    fig.update_layout(
+        barmode="overlay",
+        template="plotly_white",
+        **standard_plot_layout,
+        width=800,
+        margin={"l": 0, "r": 0, "t": 5, "b": 120},
+        legend={"x": 0.9, "y": 0.9, "xanchor": "right"},
+    )
+    fig.update_xaxes(
+        title='Health zone',
+        tickmode='array',
+        tickvals=order,
+        ticktext=[tick_text_map.get(label, label) for label in order],
+    )
+    fig.update_yaxes(title='Case count')
+    return fig

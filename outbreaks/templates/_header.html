@@ -20,6 +20,7 @@
     <ul>
         <li><a href="{{ data_url }}">↓ Data</a></li>
         <li><a href="https://github.com/globaldothealth/outbreak-data/wiki/{{ id }}">GitHub</a></li>
+        <li><a href="archive.html">Archive</a></li>
     </ul>
     <img class="logo" src="https://global.health/wp-content/uploads/2020/07/gh-logo-full-black.png"
          alt="Global.health logo"></li>
@@ -36,28 +37,30 @@
             <td>{{{id}}}</td>
         </tr>
         <tr>
-            <td><strong>Date of Report</strong></td>
-            <td>{{{published_date}}}</td>
-        </tr>
-        <tr>
-            <td><strong>Update number</strong></td>
-            <td>{{{update_number}}}</td>
-        </tr>
-        <tr>
-            <td><strong>Reporting period</strong></td>
-            <td>{{{reporting_period}}}</td>
-        </tr>
-        <tr>
             <td><strong>Event Classification</strong></td>
             <td>{{{event_classification}}}</td>
         </tr>
         <tr>
-            <td><strong>Primary Data Sources</strong></td>
-            <td>{{{primary_data_sources}}}</td>
+            <td><strong>Data Period</strong></td>
+            <td>{{{reporting_period}}}</td>
         </tr>
         <tr>
             <td><strong>Report by</strong></td>
             <td>Global.health <a href="mailto:info@global.health">info@global.health</a>
             </td>
         </tr>
+        <tr>
+            <td><strong>Date of Publication</strong></td>
+            <td>{{{date_of_publication}}}</td>
+        </tr>
+        <tr>
+            <td><strong>Update number</strong></td>
+            <td>{{{update_number}}}</td>
+        </tr>
+        <tr>
+            <td><strong>Primary Data Sources</strong></td>
+            <td>DRC <a href="https://insp.cd/" target="_blank">Institut National de Santé Publique</a> (INSP)<br/>
+                Uganda <a href="https://evd-daily.health.go.ug/" target="_blank">Ministry of Health</a></td>
+        </tr>
+
     </table>

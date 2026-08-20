@@ -20,7 +20,6 @@ from ..plots import (
     get_countries_with_anyof_statuses,
     plot_epicurve,
     plot_timeseries_location_status,
-    html_country_counts,
     plot_stacked_barchart,
     plot_age_gender,
     plot_data_availability,
@@ -46,10 +45,11 @@ from ..sources import source_databutton, source_google_sheet
 from .avian_influenza import plot_avian_influenza_age_gender, plot_avian_influenza_genomics, \
     table_avian_influenza_exposure
 from .mpox2024 import mpox_2024_aggregate
+from .ebola_bvd import html_ebola_bvd_country_counts, plot_ebola_bvd_health_zone_barchart
 
 REPORT_BUCKET = "reports.global.health"
 OUTBREAK_SPECIFIC_METHODS = [mpox_2024_aggregate, plot_avian_influenza_age_gender, plot_avian_influenza_genomics,
-                             table_avian_influenza_exposure]
+                             table_avian_influenza_exposure, plot_ebola_bvd_health_zone_barchart, html_ebola_bvd_country_counts]
 ALLOWED_METHODS = OUTBREAK_SPECIFIC_METHODS + [
     get_counts,
     get_aggregate,
@@ -59,7 +59,6 @@ ALLOWED_METHODS = OUTBREAK_SPECIFIC_METHODS + [
     plot_data_availability,
     plot_delay_distribution,
     plot_epicurve,
-    html_country_counts,
     plot_stacked_barchart,
     plot_trailing_case_count,
     plot_term_frequency,
@@ -132,6 +131,7 @@ class Outbreak:
         self.display_name = self.metadata.get("display_name")
         self.update_number = self.metadata.get("update_number")
         self.reporting_period = self.metadata.get("reporting_period")
+        self.date_of_publication = self.metadata.get("date_of_publication")
         self.report_end_date = self.metadata.get("report_end_date", "")
         self.data_as_of = self.metadata.get("data_as_of", '')
         self.event_classification = self.metadata.get("event_classification")
@@ -226,6 +226,7 @@ class Outbreak:
             "published_date": str(date),
             "update_number": self.update_number,
             "reporting_period": self.reporting_period,
+            "date_of_publication": self.date_of_publication,
             "data_as_of": self.data_as_of,
             "event_classification": self.event_classification,
             "primary_data_sources": self.primary_data_sources,
@@ -239,7 +240,15 @@ class Outbreak:
         var.update(read_includes(self.name, datetime.datetime.utcnow().date()))
         df = read_csv(self.url, self.metadata.get("additional_date_columns", []))
         if self.report_end_date:
-            df = df[df['Date_entry'] <= pd.Timestamp(self.report_end_date)]
+            report_end_ts = pd.Timestamp(self.report_end_date)
+            date_death = pd.to_datetime(df['Date_death'], errors='coerce')
+            date_confirmation = pd.to_datetime(df['Date_confirmation'], errors='coerce')
+            df = df[(date_death <= report_end_ts) | (date_confirmation <= report_end_ts)]
+            date_death = pd.to_datetime(df['Date_death'], errors='coerce')
+            late_death_mask = date_death.notna() & (date_death > pd.Timestamp(self.report_end_date))
+            df.loc[late_death_mask, 'Outcome'] = None
+            df.loc[late_death_mask, 'Date_death'] = None
+
         for plot in self.plots:
             plot_type, plot_key, *plot_info = plot.split("/")
             kwargs = self.plots[plot]

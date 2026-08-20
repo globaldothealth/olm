@@ -151,6 +151,7 @@ def get_epicurve(
         groupby_col: str,
         values: list[str] | None = None,
         cumulative: bool = True,
+        confirmed: bool = True,
 ) -> pd.DataFrame:
     """Returns epidemic curve
 
@@ -168,6 +169,8 @@ def get_epicurve(
         Whether to return cumulative counts (default = true)
     """
     values = non_null_unique(df[groupby_col]) if values is None else values
+    if confirmed:
+        df = df[df["Case_status"].isin(['confirmed'])]
     epicurve = (
         df[~pd.isna(df[date_col]) & df[groupby_col].isin(values)]
         .groupby([date_col, groupby_col])
@@ -183,7 +186,7 @@ def get_epicurve(
 def get_counts(df: pd.DataFrame, date_col: str, static_counts: dict[str, int] = {}) -> dict[str, int]:
     status = df.Case_status.value_counts()
     confirmed = df[df.Case_status == "confirmed"]
-    outcome = df['Outcome']
+    outcome = confirmed['Outcome']
     counts = {
         "n_confirmed": int(status.confirmed),
         "n_probable": int(status.get("probable", 0)),
@@ -199,7 +202,7 @@ def get_counts(df: pd.DataFrame, date_col: str, static_counts: dict[str, int] = 
     }
     if 'Location_Admin1' in df.columns:
         location_admin1 = df['Location_Admin1']
-        counts["n_unique_states"] = len(location_admin1.value_counts()),
+        counts["n_unique_states"] = len(location_admin1.value_counts())
     if 'Occupation' in df.columns:
         occupation = df[df.Case_status == "confirmed"]['Occupation'].dropna()
         counts["n_farm_workers_infected"] = sum('farm worker' in ov.lower() for ov in occupation.values)
@@ -255,7 +258,12 @@ def get_timeseries_location_status(
     return timeseries.reset_index(names="Date_onset_estimated")
 
 
-def get_trailing_case_count(df: pd.DataFrame, date_col: str, trailing_time_in_days: int):
+def get_trailing_case_count(
+        df: pd.DataFrame,
+        date_col: str,
+        trailing_time_in_days: int,
+        date_limit: str | None = None,
+):
     """Returns trailing case count
 
     Parameters
@@ -270,12 +278,15 @@ def get_trailing_case_count(df: pd.DataFrame, date_col: str, trailing_time_in_da
     date_and_count = df[date_col].value_counts().sort_index()
     x = date_and_count.index
     y = date_and_count.values
+    max_date = pd.to_datetime(date_limit, errors="coerce") if date_limit is not None else None
 
     # For each of the case occurrences propagate values for the next "trailing_time_in_days" days
     trailing_data = collections.defaultdict(int)
     for x_idx in range(len(x)):
         for i in range(trailing_time_in_days):
             date = x[x_idx] + timedelta(i)
+            if max_date is not None and date > max_date:
+                continue
             date = date.strftime("%Y-%m-%d")
             trailing_data[date] += int(y[x_idx])
     return trailing_data
@@ -545,8 +556,6 @@ def plot_data_availability(df: pd.DataFrame):
     return fig
 
 
-# TODO Ideally we would want the term frequency plot to generate automatically from the dataset
-#      due to complex preprocessing for Avian Influenza 2024 we need to extract it manually
 def plot_term_frequency(_: pd.DataFrame, term_column: str, term_values: dict[str, int], total_entry_count: int,
                         y_label: str):
     """Creates term frequency horizontal barplot
@@ -607,8 +616,6 @@ def plot_term_frequency(_: pd.DataFrame, term_column: str, term_values: dict[str
     return fig
 
 
-# TODO Ideally we would want the wordcloud to generate automatically from the dataset
-#      due to complex preprocessing for Avian Influenza 2024 we need to extract it manually
 def plot_wordcloud(_: pd.DataFrame, term_values: dict[str, float]):
     """Creates wordcloud visualization
 
@@ -679,8 +686,15 @@ def plot_wordcloud(_: pd.DataFrame, term_values: dict[str, float]):
     return fig
 
 
-def plot_trailing_case_count(df: pd.DataFrame, date_col: str, trailing_time_in_days: int, x_label: str, y_label: str,
-                             palette: list[str] = PALETTE):
+def plot_trailing_case_count(
+        df: pd.DataFrame,
+        date_col: str,
+        trailing_time_in_days: int,
+        x_label: str,
+        y_label: str,
+        palette: list[str] = PALETTE,
+        date_limit: str | None = None,
+):
     """Creates trailing case count plot
 
     Parameters
@@ -698,13 +712,20 @@ def plot_trailing_case_count(df: pd.DataFrame, date_col: str, trailing_time_in_d
     palette
         Color palette for plot
     """
-    trailing_data = get_trailing_case_count(df, date_col, trailing_time_in_days)
+    trailing_data = get_trailing_case_count(
+        df,
+        date_col,
+        trailing_time_in_days,
+        date_limit=date_limit,
+    )
 
     fig = go.Figure()
     fig.add_trace(
         go.Scatter(x=list(trailing_data.keys()), y=list(trailing_data.values()), line_color=palette[0], line_width=3))
     fig.update_yaxes(**standard_axis_layout, title=x_label)
     fig.update_xaxes(**standard_axis_layout, title=y_label)
+    if date_limit is not None:
+        fig.update_xaxes(range=[None, date_limit])
     fig.update_layout(
         **standard_plot_layout,
         barmode="overlay",
@@ -750,38 +771,7 @@ def plot_stacked_barchart(df: pd.DataFrame, y_axis: str, color_column: str, x_la
     )
     fig.update_xaxes(title=x_label)
     fig.update_yaxes(title=y_label)
-    # fig.update_traces(hoverinfo="skip", hovertemplate=None)
     return fig
-
-def html_country_counts(df: pd.DataFrame, last_report_date: str):
-    countries = df['Location_Admin0'].unique()
-    cc_html = ''
-    last_report_ts = pd.to_datetime(last_report_date, errors='coerce')
-    for country in countries:
-        country_df = df[df['Location_Admin0'] == country]
-        confirmed_count = len(country_df[country_df['Case_status'] == 'confirmed'])
-        date_confirmation = pd.to_datetime(country_df['Date_confirmation'], errors='coerce')
-        new_confirmed_mask = (country_df['Case_status'] == 'confirmed') & (date_confirmation > last_report_ts)
-        new_confirmed_count = int(new_confirmed_mask.sum())
-        confirmed_deaths_count = len(country_df[country_df['Outcome'] == 'Death'])
-        new_confirmed_deaths_mask = (country_df['Outcome'] == 'Death') & (date_confirmation > last_report_ts)
-        new_confirmed_deaths_count = int(new_confirmed_deaths_mask.sum())
-        confirmed_count_html = ('<td class="without-border">'
-                                '<h3>Confirmed Cases</h3><br/>'
-                                f'<img id="confirmed_img" src="images/confirmed{"_new" if new_confirmed_count > 0 else ""}.png">'
-                                '<br/>'
-                                f'<span class="outbreak-summary-values">New: <strong>{new_confirmed_count}</strong> <br/>Total: <strong>{confirmed_count}</strong></span>'
-                                '</td>')
-        confirmed_deaths_count_html = ('<td class="without-border">'
-                                '<h3>Confirmed Deaths</h3><br/>'
-                                f'<img id="confirmed_img" src="images/dead{"_new" if new_confirmed_deaths_count > 0 else ""}.png">'
-                                '<br/>'
-                                f'<span class="outbreak-summary-values">New: <strong>{new_confirmed_deaths_count}</strong> <br/>Total: <strong>{confirmed_deaths_count}</strong></span>'
-                                '</td>')
-        cc_html += f'<thead><td colspan=2 align="left"><h3>{country}</h3></td></thead><tr>{confirmed_count_html}{confirmed_deaths_count_html}</tr>'
-    return ('<table class="summary-table">' +
-            cc_html +
-            '</table>')
 
 
 def stacked_barchart(df: pd.DataFrame, y_axis: Any, color_column: str, x_label: str, y_label: str,
