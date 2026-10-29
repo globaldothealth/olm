@@ -3,13 +3,14 @@ display_name: Ebola BVD
 id: GHL2026.D11.1D60.00
 description: Ebola BVD
 update_number: 1
-reporting_period: Epidemiological Week 32 (August 9th 2026 - August 15th 2026)
+reporting_period: Epidemiological Week 41 (October 18th 2026 - October 24th 2026)
 event_classification: Active
 primary_data_sources:
-data_as_of: August 15th 2026
+data_as_of: October 24th 2026
 schema: https://raw.githubusercontent.com/globaldothealth/outbreak-schema/main/outbreak.schema.json
-report_end_date: 2026-08-15
-date_of_publication: August 19th 2026
+report_end_date: 2026-10-24
+date_of_publication: October 28th 2026
+#url: line_list_adja.csv
 url: https://raw.githubusercontent.com/globaldothealth/outbreak-data/refs/heads/main/Ebola%20BVD/Data/Ebola%20BVD%202026%20linelist%20-%20PUBLIC%20VIEW.csv
 plots:
   data/get_counts:
@@ -47,16 +48,16 @@ plots:
     trailing_time_in_days: 7
     y_label: 'Date of confirmation'
     x_label: 'Weekly trailing case count'
-    date_limit: 2026-08-15
+    date_limit: 2026-10-24
   figure/epicurve_by_health_zone:
     title: Date of confirmation
     date_col: Date_confirmation
     groupby_col: 'Health zone'
   figure/ebola_bvd_health_zone_barchart:
   html/ebola_bvd_country_counts:
-    last_report_date: 2026-08-08
-    drc_new_cases: 651
-    drc_new_deaths: 365
+    last_report_date: 2026-10-17
+    drc_new_cases: 509
+    drc_new_deaths: 280
 
 
 

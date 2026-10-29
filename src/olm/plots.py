@@ -185,8 +185,14 @@ def get_epicurve(
 
 def get_counts(df: pd.DataFrame, date_col: str, static_counts: dict[str, int] = {}) -> dict[str, int]:
     status = df.Case_status.value_counts()
+
+
     confirmed = df[df.Case_status == "confirmed"]
-    outcome = confirmed['Outcome']
+    ituri = confirmed[confirmed['Location Admin1'] == "Ituri"]
+    provinces = ituri['Health zone'].value_counts()
+    print(provinces)
+    confirmed_for_outcome = df[(df.Case_status == "confirmed") | (df.Case_status == "a ventiler")]
+    outcome = confirmed_for_outcome['Outcome']
     counts = {
         "n_confirmed": int(status.confirmed),
         "n_probable": int(status.get("probable", 0)),
@@ -194,10 +200,10 @@ def get_counts(df: pd.DataFrame, date_col: str, static_counts: dict[str, int] = 
         "n_dead": int(outcome.value_counts().get("death", 0)) or int(outcome.value_counts().get("Death", 0)),
         "n_unique_countries": len(df["Location_Admin0"].unique()),
         "date": df[~pd.isna(df[date_col])][date_col].max().strftime('%Y-%m-%d'),
-        "pc_valid_age_gender": percentage_occurrence(
-            confirmed,
-            (~confirmed.Age.isna()) & (~confirmed.Gender.isna()),
-        ),
+        # "pc_valid_age_gender": percentage_occurrence(
+        #     confirmed,
+        #     (~confirmed.Age.isna()) & (~confirmed.Gender.isna()),
+        # ),
         **static_counts,
     }
     if 'Location_Admin1' in df.columns:

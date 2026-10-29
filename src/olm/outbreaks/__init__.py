@@ -159,6 +159,7 @@ class Outbreak:
     def read(
             self, data_url: str | None = None, convert_dates: bool = True
     ) -> pd.DataFrame:
+        print(self.url)
         "Loads outbreak data from URL or path"
         data_url = data_url or self.url
         if data_url is None:

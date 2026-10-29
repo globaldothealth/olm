@@ -308,6 +308,66 @@ section::before{
 .without-border {
     border: none;
 }
+
+/* Ebola BVD country counts table */
+.country-counts-table {
+    border-collapse: collapse;
+    font-family: 'mabry-regular-pro', Helvetica, Arial, sans-serif;
+    font-size: 22px;
+    th {
+        text-align: center;
+        vertical-align: bottom;
+        padding: 4px 10px;
+    }
+    th.sub {
+        font-size: 16px;
+        font-weight: normal;
+    }
+    td {
+        vertical-align: middle;
+        padding: 4px 10px;
+        font-weight: bold;
+    }
+    td.country {
+        text-align: left;
+    }
+    td.num {
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+    }
+    td.is-up {
+        color: #ff6756;
+    }
+    td.is-flat {
+        color: #107569;
+    }
+    td.new.is-flat,
+    td.cfr {
+        color: #8a8a8a;
+        font-weight: normal;
+    }
+    tfoot td {
+        border-top: 2px solid #333;
+    }
+    caption.country-counts-notes {
+        caption-side: bottom;
+        text-align: left;
+        font-size: 12px;
+        color: #666;
+        padding-top: 6px;
+    }
+    td:nth-child(2),
+    td:nth-child(3),
+    td:nth-child(4) {
+        border-right: 1px solid rgba(0, 0, 0, 0.18);
+    }
+    tbody {
+        tr:nth-child(odd) {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+    }
+}
+
 @media print {
 
 }
