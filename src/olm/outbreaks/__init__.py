@@ -45,11 +45,12 @@ from ..sources import source_databutton, source_google_sheet
 from .avian_influenza import plot_avian_influenza_age_gender, plot_avian_influenza_genomics, \
     table_avian_influenza_exposure
 from .mpox2024 import mpox_2024_aggregate
-from .ebola_bvd import html_ebola_bvd_country_counts, plot_ebola_bvd_health_zone_barchart
+from .ebola_bvd import html_ebola_bvd_country_counts, plot_ebola_bvd_health_zone_barchart, \
+    plot_province_cases, plot_health_zone_cases
 
 REPORT_BUCKET = "reports.global.health"
 OUTBREAK_SPECIFIC_METHODS = [mpox_2024_aggregate, plot_avian_influenza_age_gender, plot_avian_influenza_genomics,
-                             table_avian_influenza_exposure, plot_ebola_bvd_health_zone_barchart, html_ebola_bvd_country_counts]
+                             table_avian_influenza_exposure, plot_ebola_bvd_health_zone_barchart, html_ebola_bvd_country_counts, plot_province_cases, plot_health_zone_cases]
 ALLOWED_METHODS = OUTBREAK_SPECIFIC_METHODS + [
     get_counts,
     get_aggregate,

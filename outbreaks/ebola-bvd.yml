@@ -58,6 +58,11 @@ plots:
     last_report_date: 2026-10-17
     drc_new_cases: 509
     drc_new_deaths: 280
+  figure/health_zone_cases:
+    date_limit: 2026-10-24
+  figure/province_cases:
+    date_limit: 2026-10-24
+
 
 
 
