@@ -109,9 +109,13 @@ def html_ebola_bvd_country_counts(df: pd.DataFrame, last_report_date: str, drc_n
 
 
 
-def plot_ebola_bvd_health_zone_barchart(df: pd.DataFrame):
+def plot_ebola_bvd_health_zone_barchart(df: pd.DataFrame, visible_zones: int = 15):
     """
     Creates stacked bar chart of Ebola BVD cases by health zone and outcome, with health zones grouped by Location Admin1.
+
+    There are too many health zones to fit, so only the first `visible_zones` (the ones with the most cases) are
+    in view initially. A plotly range slider below the chart is always visible and is used to scroll through the
+    rest (drag the selection, or its edges to zoom).
     """
     df = df.copy()
     df = df[df["Location_Admin0"] == "Democratic Republic of the Congo"]
@@ -172,7 +176,8 @@ def plot_ebola_bvd_health_zone_barchart(df: pd.DataFrame):
         template="plotly_white",
         **standard_plot_layout,
         width=800,
-        margin={"l": 0, "r": 0, "t": 5, "b": 120},
+        height=540,  # room for the tick labels and the range slider
+        margin={"l": 0, "r": 0, "t": 5, "b": 35},
         legend={"x": 0.9, "y": 0.9, "xanchor": "right"},
     )
     fig.update_xaxes(
@@ -180,30 +185,24 @@ def plot_ebola_bvd_health_zone_barchart(df: pd.DataFrame):
         tickmode='array',
         tickvals=order,
         ticktext=[tick_text_map.get(label, label) for label in order],
+        range=[-0.5, min(visible_zones, len(order)) - 0.5],
+        rangeslider={"visible": True, "thickness": 0.08},
     )
     fig.update_yaxes(title='Case count')
     return fig
 
 
-# Administrative levels of the DRC that the area charts can be drawn for, and the linelist column of each
-ADMIN_COLUMNS = {1: "Location Admin1", 2: "Health zone"}
+MOVING_AVERAGE_DAYS = 7
+PANEL_COLUMNS = 2
 
 
-def _area_moving_averages(df: pd.DataFrame, window: int, admin_level: int, date_limit: str | None):
-    """Moving average of daily confirmed DRC cases per area, over the whole outbreak span.
+def _area_moving_averages(df: pd.DataFrame, column: str, date_limit: str | None):
+    """Daily confirmed DRC cases per area (value of `column`) over the whole outbreak span, and their trailing
+    `MOVING_AVERAGE_DAYS` moving average (over fewer days at the very start).
 
-    Areas are provinces (`admin_level` 1, column "Location Admin1") or health zones (`admin_level` 2, column
-    "Health zone"); cases without a value for the level are left out.
-
-    The average at a date covers that day and the `window` - 1 days before it (fewer at the very start).
-
-    Returns ``(totals, x, y, daily)``: confirmed case totals per area (highest first), the dates as
-    ``YYYY-MM-DD`` strings, and dicts mapping each area to its moving average (rounded to 1 decimal) and to its
-    daily case counts, one value per date.
+    Returns ``(totals, x, y, daily)``: confirmed case totals per area (highest first), the dates as ``YYYY-MM-DD``
+    strings, and dicts mapping each area to its moving average and to its daily case counts.
     """
-    if admin_level not in ADMIN_COLUMNS:
-        raise ValueError(f"admin_level must be one of {sorted(ADMIN_COLUMNS)}, got: {admin_level!r}")
-    column = ADMIN_COLUMNS[admin_level]
     df = df[
         (df["Location_Admin0"] == "Democratic Republic of the Congo")
         & (df["Case_status"] == "confirmed")
@@ -217,145 +216,102 @@ def _area_moving_averages(df: pd.DataFrame, window: int, admin_level: int, date_
         area: df.loc[df[column] == area, "Date_confirmation"].value_counts().reindex(full_range, fill_value=0)
         for area in totals.index
     }
-    y = {area: counts.rolling(window, min_periods=1).mean().round(1).tolist() for area, counts in daily.items()}
+    y = {
+        area: counts.rolling(MOVING_AVERAGE_DAYS, min_periods=1).mean().round(1).tolist()
+        for area, counts in daily.items()
+    }
     return totals, x, y, {area: counts.tolist() for area, counts in daily.items()}
 
 
-def _zone_dropdown(slot: int, totals: pd.Series, dates: list[str], counts: dict[str, list[int]],
-                   daily: dict[str, list[int]] | None = None, daily_slot: int | None = None, **position) -> dict:
-    """Plotly dropdown (``updatemenus`` entry) which swaps the data of trace `slot` for the chosen area (province or health zone).
+def _panel(i: int) -> dict:
+    return {"row": i // PANEL_COLUMNS + 1, "col": i % PANEL_COLUMNS + 1}
 
-    Options are "None" (hides the trace) followed by every area with its total confirmed cases. The border has the
-    colour of the trace (``PALETTE[slot]``). If `daily` and `daily_slot` are given, the trace `daily_slot` (e.g.
-    a bar trace of daily counts) is swapped together with the main one. `position` is passed on to the menu
-    (``x``, ``y``, ``active``, ...).
+
+def _area_cases(x: list[str], y: dict, daily: dict, areas: list[str], top: int, titles: list[str] | None = None):
+    """Grid of panels, one per area in `areas`: daily cases as bars behind the moving average line, date and y
+    axis labels on every panel, one shared y scale and the full date range. Traces ``0..n-1`` are the lines and
+    ``n..2n-1`` the bars. `top` is the room above the grid for titles and controls.
     """
-    traces = [slot] + ([daily_slot] if daily is not None else [])
-    buttons = [{"label": "None", "method": "restyle", "args": [{"visible": [False] * len(traces)}, traces]}] + [
-        {"label": f"{zone} ({n:,})", "method": "restyle",
-         "args": [{"x": [dates] * len(traces), "y": [counts[zone]] + ([daily[zone]] if daily else []),
-                   "name": [zone, "Daily cases"][:len(traces)], "visible": [True] * len(traces)}, traces]}
-        for zone, n in totals.items()
-    ]
-    return {"type": "dropdown", "direction": "down", "showactive": True, "xanchor": "left", "yanchor": "bottom",
-            "bordercolor": PALETTE[slot], "borderwidth": 3, "bgcolor": "#fff", "buttons": buttons, **position}
-
-
-def _area_cases(df: pd.DataFrame, window: int, admin_level: int, date_limit: str | None,
-                           columns: int, max_areas: int | None, dropdowns: bool, scale_toggle: bool = False):
-    """Grid of panels, one per area (see `_area_moving_averages`), ordered by confirmed cases (highest first,
-    row by row). Each panel shows the daily case count as bars behind the moving average line, has its own date
-    and y axis labels and titles, and all panels share one y scale and the full outbreak date range.
-
-    Without `dropdowns` the panel title is the area name and its total confirmed cases, in all panels with the
-    same colour. With `dropdowns` the first `max_areas` areas are shown and a native plotly dropdown above each
-    panel (see `_zone_dropdown`), labelled "Health Zone:", swaps the area; the dropdown replaces the title. All
-    panels use the same colour. Traces ``0..n-1`` are the lines and ``n..2n-1`` the bars of panels ``0..n-1``.
-
-    With `scale_toggle` a "Plot scale:" label and two plotly buttons at the top right switch between "absolute"
-    (all panels share the y scale, the default) and "relative" (each panel scales to its own data, so small areas
-    stay readable) by setting or clearing ``matches`` on every y axis.
-    """
-    totals, x, y, daily = _area_moving_averages(df, window, admin_level, date_limit)
-    areas = totals.index[:max_areas].tolist()
     n = len(areas)
-    rows = -(-n // columns)  # ceil
-    row_px = 300  # height of a panel including the date labels and title below it and the title/dropdown above
-    fig = make_subplots(
-        rows=rows, cols=columns, horizontal_spacing=0.12, vertical_spacing=min(120 / (row_px * rows), 0.5 / rows),
-        subplot_titles=None if dropdowns else [f"{area} ({totals[area]:,})" for area in areas],
-    )
-    position = lambda i: {"row": i // columns + 1, "col": i % columns + 1}
+    rows = -(-n // PANEL_COLUMNS)  # ceil
+    row_px = 300  # panel height including the date labels below it and the title or dropdown above it
+    fig = make_subplots(rows=rows, cols=PANEL_COLUMNS, horizontal_spacing=0.12,
+                        vertical_spacing=120 / (row_px * rows), subplot_titles=titles)
+    for annotation in fig.layout.annotations:
+        annotation.font = {"size": 14}
     for i, area in enumerate(areas):
-        fig.add_trace(go.Scatter(x=x, y=y[area], name=area if dropdowns else f"{window}-day average",
-                                 line_color=PALETTE[0], line_width=2), **position(i))
-    for i, area in enumerate(areas):  # bars; plotly always draws them below the lines
+        fig.add_trace(go.Scatter(x=x, y=y[area], name=f"{MOVING_AVERAGE_DAYS}-day average", line_color=PALETTE[0],
+                                 line_width=2), **_panel(i))
+    for i, area in enumerate(areas):  # plotly always draws bars below lines
         fig.add_trace(go.Bar(x=x, y=daily[area], name="Daily cases", marker_color=PALETTE[0], opacity=0.35),
-                      **position(i))
+                      **_panel(i))
     fig.update_xaxes(**standard_axis_layout, range=[x[0], x[-1]], dtick="M1", tickformat="%b<br>%Y",
                      title_text="Date of confirmation")
     fig.update_yaxes(**standard_axis_layout, zeroline=False, matches="y", rangemode="tozero",
-                     title_text=f"Daily cases and {window}-day average")
-    menus = []
-    if dropdowns:
-        for i in range(n):
-            axes = fig.get_subplot(**position(i))  # place each dropdown above its panel
-            left, top_edge = axes.xaxis.domain[0], axes.yaxis.domain[1] + 0.01
-            fig.add_annotation(text="Health Zone:", xref="paper", yref="paper", x=left, y=top_edge, xanchor="left",
-                               yanchor="bottom", yshift=8, xshift=-10, showarrow=False, font={"size": 14})
-            # no border, and shifted right by about the width of the label above (plotly sizes the box itself)
-            menus.append(_zone_dropdown(i, totals, x, y, daily, i + n, x=left, y=top_edge, active=i + 1,
-                                        borderwidth=0, pad={"l": 80}, font={"size": 14}))
-    else:
-        for annotation in fig["layout"]["annotations"]:  # panel titles
-            annotation["font"] = {"size": 14}
-    top = 50 + 40 * scale_toggle  # room for the dropdowns / panel titles, and the scale buttons above them
-    if scale_toggle:
-        axes = ["yaxis"] + [f"yaxis{k}" for k in range(2, n + 1)]
-        buttons_y = 1 + (top - 10) / (row_px * rows + top)
-        # the buttons are right aligned; their width is fixed by plotly (about 127px for these two labels), so the
-        # label is placed that far (plus an 8px gap) to the left of the right edge. Plotly overshoots the right edge a bit, hence `pad`
-        fig.add_annotation(text="Plot scale:", xref="paper", yref="paper", x=1, y=buttons_y, xanchor="right",
-                           yanchor="top", yshift=-6, xshift=-145, showarrow=False, font={"size": 13})
-        menus.append({
-            "type": "buttons", "direction": "right", "showactive": True, "active": 0, "bgcolor": "#fff",
-            "x": 1, "xanchor": "right", "y": buttons_y, "yanchor": "top", "pad": {"r": 4},
-            "buttons": [
-                {"label": "absolute", "method": "relayout",
-                 "args": [{**{f"{a}.matches": "y" for a in axes}, **{f"{a}.autorange": True for a in axes}}]},
-                {"label": "relative", "method": "relayout",
-                 "args": [{**{f"{a}.matches": None for a in axes}, **{f"{a}.autorange": True for a in axes}}]},
-            ],
-        })
-    fig.update_layout(**standard_plot_layout, showlegend=False, bargap=0.1, updatemenus=menus,
-                      height=row_px * rows + top, margin={"l": 0, "r": 0, "t": top, "b": 0})
+                     title_text=f"Daily cases and {MOVING_AVERAGE_DAYS}-day average")
+    fig.update_layout(**standard_plot_layout, showlegend=False, bargap=0.1, height=row_px * rows + top,
+                      margin={"l": 0, "r": 0, "t": top, "b": 0})
     return fig
 
 
-def plot_province_cases(df: pd.DataFrame, window: int = 7, date_limit: str | None = None,
-                                   columns: int = 2, max_areas: int | None = None):
-    """Panel per DRC province (all of them by default), 2 per row, titled with the province and its total of
-    confirmed cases: daily confirmed cases as bars and their `window`-day moving average as a line, see
-    `_area_cases`. Buttons at the top right ("Plot scale") switch between one shared, absolute y scale (default) and a
-    relative one, i.e. a y scale per province, as small provinces are unreadable on the shared one.
-
-    Parameters
-    ----------
-    df
-        Linelist; only confirmed DRC cases with a confirmation date are used
-    window
-        Moving average window in days
-    date_limit
-        Last date shown on the charts, defaults to the latest confirmation date
-    columns
-        Number of panels per row
-    max_areas
-        Only show this many provinces, those with the most confirmed cases (default: all)
+def _zone_dropdown(slot: int, n: int, totals: pd.Series, dates: list[str], averages: dict, daily: dict,
+                   **position) -> dict:
+    """Plotly dropdown which shows the chosen health zone in panel `slot` of `_area_cases` by swapping the data
+    of its line and bars. Options are "None" (hides the panel's traces) and every zone with its total cases.
     """
-    return _area_cases(df, window, 1, date_limit, columns, max_areas, dropdowns=False, scale_toggle=True)
+    traces = [slot, slot + n]
+    buttons = [{"label": "None", "method": "restyle", "args": [{"visible": [False, False]}, traces]}] + [
+        {"label": f"{zone} ({count:,})", "method": "restyle",
+         "args": [{"x": [dates, dates], "y": [averages[zone], daily[zone]], "visible": [True, True]},
+                  traces]}
+        for zone, count in totals.items()
+    ]
+    return {"type": "dropdown", "direction": "down", "showactive": True, "xanchor": "left", "yanchor": "bottom",
+            "borderwidth": 0, "bgcolor": "#fff", "buttons": buttons, **position}
 
 
-def plot_health_zone_cases(df: pd.DataFrame, window: int = 7, date_limit: str | None = None,
-                                      slots: int = 4, columns: int = 2):
-    """Panels for `slots` DRC health zones at a time (2x2 by default), each with its own native plotly dropdown
-    above it to choose the health zone from all of them (or "None" to hide it). Uses only plotly ``updatemenus``,
-    so no custom HTML or JS is needed. Panels start with the health zones with the most confirmed cases, see
-    `_area_cases`.
-
-    Plotly dropdowns are stateless, so a health zone picked in one panel is still offered in the others.
-    Picking it twice shows it in both panels.
-
-    Parameters
-    ----------
-    df
-        Linelist; only confirmed DRC cases with a confirmation date are used
-    window
-        Moving average window in days
-    date_limit
-        Last date shown on the charts, defaults to the latest confirmation date
-    slots
-        Number of panels / health zones shown at once (at most ``len(PALETTE)``)
-    columns
-        Number of panels per row
+def plot_province_cases(df: pd.DataFrame, date_limit: str | None = None):
+    """Panel per DRC province, titled with its total of confirmed cases, see `_area_cases`. "Plot scale" buttons
+    switch between one shared y scale (absolute) and one per panel (relative), as small provinces are unreadable
+    on the shared one.
     """
-    return _area_cases(df, window, 2, date_limit, columns, slots, dropdowns=True)
+    totals, x, y, daily = _area_moving_averages(df, "Location Admin1", date_limit)
+    areas = totals.index.tolist()
+    top = 90  # room for the panel titles and the scale buttons above them
+    fig = _area_cases(x, y, daily, areas, top, titles=[f"{area} ({totals[area]:,})" for area in areas])
+    yaxes = ["yaxis"] + [f"yaxis{k}" for k in range(2, len(areas) + 1)]
+    scale = lambda matches: [{**{f"{a}.matches": matches for a in yaxes}, **{f"{a}.autorange": True for a in yaxes}}]
+    buttons_y = 1 + (top - 10) / fig.layout.height
+    # plotly sizes the buttons (about 127px) and overshoots the right edge (hence `pad`); the label is 8px left
+    fig.add_annotation(text="Plot scale:", xref="paper", yref="paper", x=1, y=buttons_y, xanchor="right",
+                       yanchor="top", yshift=-6, xshift=-145, showarrow=False, font={"size": 13})
+    fig.update_layout(updatemenus=[{
+        "type": "buttons", "direction": "right", "showactive": True, "active": 0, "bgcolor": "#fff",
+        "x": 1, "xanchor": "right", "y": buttons_y, "yanchor": "top", "pad": {"r": 4},
+        "buttons": [
+            {"label": "absolute", "method": "relayout", "args": scale("y")},
+            {"label": "relative", "method": "relayout", "args": scale(None)},
+        ],
+    }])
+    return fig
+
+
+def plot_health_zone_cases(df: pd.DataFrame, date_limit: str | None = None, slots: int = 4):
+    """Panels for `slots` DRC health zones, starting with those with the most confirmed cases, see `_area_cases`.
+    A "Health Zone:" dropdown above each panel switches it to any health zone. Plotly dropdowns are stateless, so
+    a zone picked in one panel is still offered in the others.
+    """
+    totals, x, y, daily = _area_moving_averages(df, "Health zone", date_limit)
+    areas = totals.index[:slots].tolist()
+    fig = _area_cases(x, y, daily, areas, top=50)
+    menus = []
+    for i in range(len(areas)):
+        subplot = fig.get_subplot(**_panel(i))
+        left, bottom = subplot.xaxis.domain[0], subplot.yaxis.domain[1] + 0.01
+        fig.add_annotation(text="Health Zone:", xref="paper", yref="paper", x=left, y=bottom, xanchor="left",
+                           yanchor="bottom", yshift=8, xshift=-10, showarrow=False, font={"size": 14})
+        # pad moves the dropdown right, past the label
+        menus.append(_zone_dropdown(i, len(areas), totals, x, y, daily, x=left, y=bottom, active=i + 1,
+                                    pad={"l": 80}, font={"size": 14}))
+    fig.update_layout(updatemenus=menus)
+    return fig
