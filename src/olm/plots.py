@@ -185,12 +185,6 @@ def get_epicurve(
 
 def get_counts(df: pd.DataFrame, date_col: str, static_counts: dict[str, int] = {}) -> dict[str, int]:
     status = df.Case_status.value_counts()
-
-
-    confirmed = df[df.Case_status == "confirmed"]
-    ituri = confirmed[confirmed['Location Admin1'] == "Ituri"]
-    provinces = ituri['Health zone'].value_counts()
-    print(provinces)
     confirmed_for_outcome = df[(df.Case_status == "confirmed") | (df.Case_status == "a ventiler")]
     outcome = confirmed_for_outcome['Outcome']
     counts = {
@@ -699,9 +693,9 @@ def plot_trailing_case_count(
         x_label: str,
         y_label: str,
         palette: list[str] = PALETTE,
-        date_limit: str | None = None,
+        global_args: dict | None = None,
 ):
-    """Creates trailing case count plot
+    """Creates trailing case count plot, ending at `report_end_date` (from `global_args`) if set
 
     Parameters
     ----------
@@ -718,6 +712,7 @@ def plot_trailing_case_count(
     palette
         Color palette for plot
     """
+    date_limit = (global_args or {}).get("report_end_date")
     trailing_data = get_trailing_case_count(
         df,
         date_col,

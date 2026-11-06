@@ -2,6 +2,7 @@
 Outbreak configurations
 """
 
+import inspect
 import json
 import warnings
 import datetime
@@ -83,10 +84,12 @@ TABLE_POSTPROCESSORS = {"rename_columns"}
 REQUIRED_OUTBREAK_ATTRIBUTES = {"id", "description", "name", "display_name", "update_number", "reporting_period",
                                 "event_classification", "primary_data_sources"}
 METHOD = {f.__name__: f for f in ALLOWED_METHODS}
+# Functions declaring a parameter with this name receive the top-level YAML settings (see `_with_global_args`)
+GLOBAL_ARGS_PARAM = "global_args"
 
 
 def render_figure(fig, key: str) -> str:
-    return {key: plotly.io.to_html(fig, include_plotlyjs=False, full_html=False, config={'displayModeBar': False})}
+    return {key: plotly.io.to_html(fig, include_plotlyjs=False, full_html=False, config={'displayModeBar': False, 'responsive': True})}
 
 
 def get_plot_method(key: str) -> str | None:
@@ -160,7 +163,6 @@ class Outbreak:
     def read(
             self, data_url: str | None = None, convert_dates: bool = True
     ) -> pd.DataFrame:
-        print(self.url)
         "Loads outbreak data from URL or path"
         data_url = data_url or self.url
         if data_url is None:
@@ -193,6 +195,21 @@ class Outbreak:
                 column = e.path[1]
                 errors.append(RowError(id, column, nrow[column], e.message))
         return LintResult(self.name, str(self.schema_url), len(errors) == 0, errors)
+
+    def _with_global_args(self, plot_type, plot_key, plot_info, plot, kwargs):
+        """Pass the report-wide settings (every top-level YAML key except `plots`) as `global_args` to functions
+        that declare a `global_args` parameter. An explicit `global_args` in the plot's kwargs takes precedence."""
+        if "global_args" in kwargs:
+            return kwargs
+        if plot_type == "data":
+            proc = plot_key
+        else:
+            proc = plot_info[0] if plot_info else get_plot_method(plot)
+        fn = METHOD.get(proc)
+        if fn is not None and GLOBAL_ARGS_PARAM in inspect.signature(fn).parameters:
+            global_args = {k: v for k, v in self.metadata.items() if k != "plots"}
+            return {**kwargs, GLOBAL_ARGS_PARAM: global_args}
+        return kwargs
 
     def make_report(
             self,
@@ -256,6 +273,7 @@ class Outbreak:
             kwargs = self.plots[plot]
             if kwargs is None:
                 kwargs = {}
+            kwargs = self._with_global_args(plot_type, plot_key, plot_info, plot, kwargs)
             match plot_type:
                 case "data":
                     var.update(METHOD[plot_key](df, **kwargs))

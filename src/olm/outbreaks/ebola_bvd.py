@@ -9,10 +9,10 @@ from plotly.subplots import make_subplots
 
 from ..plots import standard_plot_layout, standard_axis_layout, PALETTE
 
-def html_ebola_bvd_country_counts(df: pd.DataFrame, last_report_date: str, drc_new_cases: int, drc_new_deaths: int):
+def html_ebola_bvd_country_counts(df: pd.DataFrame, global_args: dict, drc_new_cases: int, drc_new_deaths: int):
     """Generate HTML table of confirmed cases and deaths by country"""
     countries = df['Location_Admin0'].unique()
-    last_report_ts = pd.to_datetime(last_report_date, errors='coerce')
+    last_report_ts = pd.to_datetime(global_args["last_report_end_date"], errors='coerce')
 
     row_data = []
     for country in countries:
@@ -175,7 +175,6 @@ def plot_ebola_bvd_health_zone_barchart(df: pd.DataFrame, visible_zones: int = 1
         barmode="overlay",
         template="plotly_white",
         **standard_plot_layout,
-        width=800,
         height=540,  # room for the tick labels and the range slider
         margin={"l": 0, "r": 0, "t": 5, "b": 35},
         legend={"x": 0.9, "y": 0.9, "xanchor": "right"},
@@ -270,12 +269,12 @@ def _zone_dropdown(slot: int, n: int, totals: pd.Series, dates: list[str], avera
             "borderwidth": 0, "bgcolor": "#fff", "buttons": buttons, **position}
 
 
-def plot_province_cases(df: pd.DataFrame, date_limit: str | None = None):
+def plot_province_cases(df: pd.DataFrame, global_args: dict):
     """Panel per DRC province, titled with its total of confirmed cases, see `_area_cases`. "Plot scale" buttons
     switch between one shared y scale (absolute) and one per panel (relative), as small provinces are unreadable
     on the shared one.
     """
-    totals, x, y, daily = _area_moving_averages(df, "Location Admin1", date_limit)
+    totals, x, y, daily = _area_moving_averages(df, "Location Admin1", global_args.get("report_end_date"))
     areas = totals.index.tolist()
     top = 90  # room for the panel titles and the scale buttons above them
     fig = _area_cases(x, y, daily, areas, top, titles=[f"{area} ({totals[area]:,})" for area in areas])
@@ -296,12 +295,12 @@ def plot_province_cases(df: pd.DataFrame, date_limit: str | None = None):
     return fig
 
 
-def plot_health_zone_cases(df: pd.DataFrame, date_limit: str | None = None, slots: int = 4):
+def plot_health_zone_cases(df: pd.DataFrame, global_args: dict, slots: int = 4):
     """Panels for `slots` DRC health zones, starting with those with the most confirmed cases, see `_area_cases`.
     A "Health Zone:" dropdown above each panel switches it to any health zone. Plotly dropdowns are stateless, so
     a zone picked in one panel is still offered in the others.
     """
-    totals, x, y, daily = _area_moving_averages(df, "Health zone", date_limit)
+    totals, x, y, daily = _area_moving_averages(df, "Health zone", global_args.get("report_end_date"))
     areas = totals.index[:slots].tolist()
     fig = _area_cases(x, y, daily, areas, top=50)
     menus = []
